@@ -112,6 +112,12 @@
         <p>Access course materials and notes for your enrolled subjects</p>
     </div>
 
+    {% if error %}
+    <div style="background: #3d1a1a; color: #ff6b6b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #5c2b2b;">
+        ⚠️ {{ error }}
+    </div>
+    {% endif %}
+
     {% if courses %}
     <div class="courses-grid">
         {% for course in courses %}

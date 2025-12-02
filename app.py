@@ -18,12 +18,16 @@ import smtplib
 from email.message import EmailMessage
 from functools import wraps
 import csv
+import resend
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24))
 app.config['DATABASE'] = os.getenv('DATABASE_URL', 'postgresql://neondb_owner:npg_aG0AXHZwe1Fb@ep-little-hill-adfj9zrj-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
 app.config['ATTENDANCE_CSV'] = 'attendance.csv'
 app.config['TIMETABLE_CSV'] = 'timetable.csv'
+
+# Resend API Key
+resend.api_key = os.getenv('RESEND_API_KEY', 're_RQs14xkL_AKD8VjE5UM78GhCyMPZqWhEk')
 
 # Flask-Login setup
 login_manager = LoginManager()
@@ -299,46 +303,30 @@ def send_reset_email(to_email, token):
     host = os.environ.get('APP_HOST', 'http://127.0.0.1:5000')
     reset_link = f"{host}/reset-password/{token}"
 
-    # Try SMTP if configured, otherwise print link to console (development fallback)
-    smtp_server = os.environ.get('SMTP_SERVER')
-    smtp_port = int(os.environ.get('SMTP_PORT', '587')) if os.environ.get('SMTP_PORT') else None
-    smtp_user = os.environ.get('SMTP_USER')
-    smtp_pass = os.environ.get('SMTP_PASS')
-    smtp_from = os.environ.get('SMTP_FROM_EMAIL', smtp_user)
-
     subject = 'Password reset request'
-    body = f"You requested a password reset. Click the link to reset your password:\n\n{reset_link}\n\nIf you did not request this, ignore this email."
+    html_content = f"""
+    <p>You requested a password reset.</p>
+    <p>Click the link below to reset your password:</p>
+    <p><a href="{reset_link}">{reset_link}</a></p>
+    <p>If you did not request this, ignore this email.</p>
+    """
 
-    if smtp_server and smtp_port and smtp_user and smtp_pass:
-        try:
-            # Use a thread to send email asynchronously to avoid blocking
-            import threading
-            def send_async():
-                try:
-                    msg = EmailMessage()
-                    msg.set_content(body)
-                    msg['Subject'] = subject
-                    msg['From'] = smtp_from
-                    msg['To'] = to_email
+    try:
+        params = {
+            "from": "onboarding@resend.dev",
+            "to": [to_email],
+            "subject": subject,
+            "html": html_content,
+        }
 
-                    with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as s:
-                        s.starttls()
-                        s.login(smtp_user, smtp_pass)
-                        s.send_message(msg)
-                    print(f"Password reset email sent to {to_email}")
-                except Exception as e:
-                    print(f"Failed to send reset email via SMTP (async): {e}")
-            
-            threading.Thread(target=send_async).start()
-            return True
-        except Exception as e:
-            print(f"Failed to initiate async email sending: {e}")
-            # Fallback to console if SMTP fails
-            print(f"FALLBACK: Password reset link for {to_email}: {reset_link}")
-            return False
-
-    # Fallback: print the link to console for development
-    print(f"DEV MODE: Password reset link for {to_email}: {reset_link}")
+        email = resend.Emails.send(params)
+        print(f"Password reset email sent to {to_email} via Resend. ID: {email.get('id')}")
+        return True
+    except Exception as e:
+        print(f"Failed to send reset email via Resend: {e}")
+        # Fallback to console for development
+        print(f"FALLBACK: Password reset link for {to_email}: {reset_link}")
+        return False
     return False
 
 @login_manager.user_loader
@@ -1891,7 +1879,9 @@ def get_courses_from_attendance():
 def study_materials():
     try:
         # Start from attendance-derived courses (enrolled courses shown to students)
-        courses = get_courses_from_attendance() or []
+        courses = get_courses_from_attendance()
+        if courses is None:
+            courses = []
 
         # Also include any course codes that professors have uploaded materials for
         try:
@@ -1901,7 +1891,7 @@ def study_materials():
             rows = cursor.fetchall()
             conn.close()
 
-            existing_codes = {c['code'] for c in courses}
+            existing_codes = {c.get('code') for c in courses if isinstance(c, dict) and 'code' in c}
             for r in rows:
                 code = (r['course_code'] or '').strip()
                 name = (r['course_name'] or '').strip()
@@ -1918,7 +1908,7 @@ def study_materials():
     except Exception as e:
         print(f"CRITICAL Error in study_materials route: {e}")
         # Return a valid page even if empty
-        return render_template('study_materials.html', user=current_user, courses=[], error="Unable to load courses.")
+        return render_template('study_materials.html', user=current_user, courses=[], error=f"Unable to load courses: {str(e)}")
 
 @app.route('/study-materials/<course_code>')
 @login_required

@@ -471,18 +471,34 @@
                                 <label for="block">Block</label>
                                 <select id="block" name="block">
                                     <option value="">-- Select Block --</option>
-                                    {% for b in blocks %}
-                                    <option value="{{ b }}">{{ b }}</option>
-                                    {% endfor %}
+                                    {% if blocks %}
+                                        {% for b in blocks %}
+                                        <option value="{{ b }}">{{ b }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="D">D</option>
+                                        <option value="E">E</option>
+                                        <option value="F">F</option>
+                                        <option value="G">G</option>
+                                    {% endif %}
                                 </select>
                             </div>
                             <div class="form-group">
                                 <label for="room_number">Room Number</label>
                                 <select id="room_number" name="room_number">
                                     <option value="">-- Select Room --</option>
-                                    {% for rn in room_numbers %}
-                                    <option value="{{ rn }}">{{ rn }}</option>
-                                    {% endfor %}
+                                    {% if room_numbers %}
+                                        {% for rn in room_numbers %}
+                                        <option value="{{ rn }}">{{ rn }}</option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="101">101</option>
+                                        <option value="103">103</option>
+                                        <option value="201">201</option>
+                                        <option value="203">203</option>
+                                        <option value="301">301</option>
+                                        <option value="303">303</option>
+                                    {% endif %}
                                 </select>
                             </div>
                         </div>
