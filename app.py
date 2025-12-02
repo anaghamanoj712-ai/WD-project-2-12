@@ -20,8 +20,8 @@ from functools import wraps
 import csv
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.urandom(24)
-app.config['DATABASE'] = 'postgresql://neondb_owner:npg_aG0AXHZwe1Fb@ep-little-hill-adfj9zrj-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', os.urandom(24))
+app.config['DATABASE'] = os.getenv('DATABASE_URL', 'postgresql://neondb_owner:npg_aG0AXHZwe1Fb@ep-little-hill-adfj9zrj-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require')
 app.config['ATTENDANCE_CSV'] = 'attendance.csv'
 app.config['TIMETABLE_CSV'] = 'timetable.csv'
 
