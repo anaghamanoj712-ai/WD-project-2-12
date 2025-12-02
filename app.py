@@ -325,46 +325,55 @@ def send_reset_email(to_email, token):
             return True
         except Exception as e:
             print(f"Failed to send reset email via SMTP: {e}")
+            # Fallback to console if SMTP fails
+            print(f"FALLBACK: Password reset link for {to_email}: {reset_link}")
+            return False
 
     # Fallback: print the link to console for development
-    print(f"Password reset link for {to_email}: {reset_link}")
+    print(f"DEV MODE: Password reset link for {to_email}: {reset_link}")
     return False
 
 @login_manager.user_loader
 def load_user(user_id):
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
-    user_data = cursor.fetchone()
-    conn.close()
-    
-    if user_data:
-        # Debug logging for admin role issues
-        if user_data['email'] == 'admin@iimidr.ac.in':
-            print(f"DEBUG: Loading admin user. Role in DB: {user_data.get('role')}")
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+        user_data = cursor.fetchone()
+        conn.close()
+        
+        if user_data:
+            # Debug logging for admin role issues
+            if user_data['email'] == 'admin@iimidr.ac.in':
+                print(f"DEBUG: Loading admin user. Role in DB: {user_data.get('role')}")
 
-        # Try to infer section from attendance.csv by matching email
-        section = None
-        try:
-            df = pd.read_csv(app.config['ATTENDANCE_CSV'], skiprows=2)
-            df.columns = df.columns.str.strip()
-            email_col = None
-            for col in df.columns:
-                if 'email' in col.lower():
-                    email_col = col
-                    break
-            if email_col is not None:
-                matched = df[df[email_col].str.strip().str.lower() == user_data['email'].strip().lower()]
-                if not matched.empty and 'Section' in df.columns:
-                    section_val = matched.iloc[0].get('Section')
-                    if pd.notna(section_val):
-                        section = str(section_val).strip()
-        except Exception:
+            # Try to infer section from attendance.csv by matching email
             section = None
+            try:
+                if os.path.exists(app.config['ATTENDANCE_CSV']):
+                    df = pd.read_csv(app.config['ATTENDANCE_CSV'], skiprows=2)
+                    df.columns = df.columns.str.strip()
+                    email_col = None
+                    for col in df.columns:
+                        if 'email' in col.lower():
+                            email_col = col
+                            break
+                    if email_col is not None:
+                        matched = df[df[email_col].str.strip().str.lower() == user_data['email'].strip().lower()]
+                        if not matched.empty and 'Section' in df.columns:
+                            section_val = matched.iloc[0].get('Section')
+                            if pd.notna(section_val):
+                                section = str(section_val).strip()
+            except Exception as e:
+                print(f"Error reading section from CSV: {e}")
+                section = None
 
-        return User(user_data['id'], user_data['email'], 
-                   user_data['full_name'], user_data['student_id'], 
-                   user_data['role'], section)
+            return User(user_data['id'], user_data['email'], 
+                       user_data['full_name'], user_data['student_id'], 
+                       user_data['role'], section)
+    except Exception as e:
+        print(f"Error loading user: {e}")
+        return None
     return None
 
 def verify_recaptcha(response):
@@ -1205,78 +1214,86 @@ def feedback_course(course):
 @app.route('/venue-booking', methods=['GET', 'POST'])
 @login_required
 def venue_booking():
-    if current_user.is_professor():
-        # allow professors too? keep same behavior: allow students and professors
-        pass
-
-    if request.method == 'POST':
-        venue_type = request.form.get('venue_type')
-        block = request.form.get('block')
-        room_number = request.form.get('room_number')
-        purpose = request.form.get('purpose')
-        date = request.form.get('date')
-        
-        # Get 12-hour time format inputs
-        start_hour = int(request.form.get('start_hour'))
-        start_minute = int(request.form.get('start_minute'))
-        start_period = request.form.get('start_period')
-        end_hour = int(request.form.get('end_hour'))
-        end_minute = int(request.form.get('end_minute'))
-        end_period = request.form.get('end_period')
-        
-        # Convert 12-hour to 24-hour format for storage
-        if start_period == 'PM' and start_hour != 12:
-            start_hour += 12
-        elif start_period == 'AM' and start_hour == 12:
-            start_hour = 0
-            
-        if end_period == 'PM' and end_hour != 12:
-            end_hour += 12
-        elif end_period == 'AM' and end_hour == 12:
-            end_hour = 0
-        
-        start_time = f"{start_hour:02d}:{start_minute:02d}"
-        end_time = f"{end_hour:02d}:{end_minute:02d}"
-        
-        # Validate that end time is after start time
-        start_total_minutes = start_hour * 60 + start_minute
-        end_total_minutes = end_hour * 60 + end_minute
-        
-        if end_total_minutes <= start_total_minutes:
-            flash('End time must be after start time!', 'error')
-            return redirect(url_for('venue_booking'))
-
-        if not venue_type or not date or not purpose:
-            flash('Please fill all required booking fields.', 'error')
-            return redirect(url_for('venue_booking'))
-
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO bookings (user_id, venue_type, block, room_number, purpose, date, start_time, end_time, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                       (current_user.id, venue_type, block, room_number, purpose, date, start_time, end_time, 'pending'))
-        conn.commit()
-        conn.close()
-
-        flash('Booking submitted successfully. Status: pending', 'success')
-        return redirect(url_for('venue_booking'))
-
-    # GET: provide blocks and room numbers for classrooms and fetch user's booking history
-    blocks = ['D', 'E', 'F', 'G']
-    room_numbers = ['101','103','201','203','301','303']
-    venue_types = ['Classroom', 'Music Room', 'Auditorium', 'SAC Room']
-    
-    # Fetch user's bookings
     try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM bookings WHERE user_id = %s ORDER BY created_at DESC', (current_user.id,))
-        bookings = cursor.fetchall()
-        conn.close()
+        if current_user.is_professor():
+            # allow professors too? keep same behavior: allow students and professors
+            pass
+
+        if request.method == 'POST':
+            venue_type = request.form.get('venue_type')
+            block = request.form.get('block')
+            room_number = request.form.get('room_number')
+            purpose = request.form.get('purpose')
+            date = request.form.get('date')
+            
+            # Get 12-hour time format inputs
+            try:
+                start_hour = int(request.form.get('start_hour'))
+                start_minute = int(request.form.get('start_minute'))
+                start_period = request.form.get('start_period')
+                end_hour = int(request.form.get('end_hour'))
+                end_minute = int(request.form.get('end_minute'))
+                end_period = request.form.get('end_period')
+            except (ValueError, TypeError):
+                flash('Invalid time format provided.', 'error')
+                return redirect(url_for('venue_booking'))
+            
+            # Convert 12-hour to 24-hour format for storage
+            if start_period == 'PM' and start_hour != 12:
+                start_hour += 12
+            elif start_period == 'AM' and start_hour == 12:
+                start_hour = 0
+                
+            if end_period == 'PM' and end_hour != 12:
+                end_hour += 12
+            elif end_period == 'AM' and end_hour == 12:
+                end_hour = 0
+            
+            start_time = f"{start_hour:02d}:{start_minute:02d}"
+            end_time = f"{end_hour:02d}:{end_minute:02d}"
+            
+            # Validate that end time is after start time
+            start_total_minutes = start_hour * 60 + start_minute
+            end_total_minutes = end_hour * 60 + end_minute
+            
+            if end_total_minutes <= start_total_minutes:
+                flash('End time must be after start time!', 'error')
+                return redirect(url_for('venue_booking'))
+
+            if not venue_type or not date or not purpose:
+                flash('Please fill all required booking fields.', 'error')
+                return redirect(url_for('venue_booking'))
+
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO bookings (user_id, venue_type, block, room_number, purpose, date, start_time, end_time, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                           (current_user.id, venue_type, block, room_number, purpose, date, start_time, end_time, 'pending'))
+            conn.commit()
+            conn.close()
+
+            flash('Booking submitted successfully. Status: pending', 'success')
+            return redirect(url_for('venue_booking'))
+
+        # GET: provide blocks and room numbers for classrooms and fetch user's booking history
+        blocks = ['D', 'E', 'F', 'G']
+        room_numbers = ['101','103','201','203','301','303']
+        venue_types = ['Classroom', 'Music Room', 'Auditorium', 'SAC Room']
+        
+        # Fetch user's bookings
+        try:
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM bookings WHERE user_id = %s ORDER BY created_at DESC', (current_user.id,))
+            bookings = cursor.fetchall()
+            conn.close()
+        except Exception as e:
+            print(f"Error fetching bookings: {e}")
+            bookings = []
+        
+        return render_template('venue_booking.html', user=current_user, blocks=blocks, room_numbers=room_numbers, venue_types=venue_types, bookings=bookings)
     except Exception as e:
-        print(f"Error fetching bookings: {e}")
-        bookings = []
-    
-    return render_template('venue_booking.html', user=current_user, blocks=blocks, room_numbers=room_numbers, venue_types=venue_types, bookings=bookings)
+        print(f"CRITICAL Error in venue_booking: {e}")
+        return render_template('venue_booking.html', user=current_user, blocks=[], room_numbers=[], venue_types=[], bookings=[], error="An internal error occurred.")
 
 @app.route('/api/attendance-data')
 @login_required
@@ -1769,8 +1786,41 @@ def admin_feedbacks():
                         'q5': row.get('q5', ''),
                         'remarks': row.get('remarks', '')
                     }
+        else:
+            # Fallback to DB if CSV is missing/empty
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT f.*, u.full_name, u.email 
+                FROM feedbacks f 
+                JOIN users u ON f.user_id = u.id
+            ''')
+            rows = cursor.fetchall()
+            conn.close()
+            
+            for row in rows:
+                email = row['email']
+                name = row['full_name']
+                course = row['course']
+                
+                courses.add(course)
+                if email not in students_feedback:
+                    students_feedback[email] = {
+                        'name': name,
+                        'email': email,
+                        'feedbacks': {}
+                    }
+                students_feedback[email]['feedbacks'][course] = {
+                    'q1': row['q1'],
+                    'q2': row['q2'],
+                    'q3': row['q3'],
+                    'q4': row['q4'],
+                    'q5': row['q5'],
+                    'remarks': row['remarks']
+                }
+
     except Exception as e:
-        print(f"Error reading feedback CSV: {e}")
+        print(f"Error reading feedback: {e}")
     
     # Convert to list and sort by student name
     students_list = sorted(students_feedback.values(), key=lambda x: x['name'].lower())
@@ -1784,31 +1834,40 @@ def admin_feedbacks():
 def get_courses_from_attendance():
     """Get course list from attendance.csv header"""
     try:
+        if not os.path.exists(app.config['ATTENDANCE_CSV']):
+            print("Attendance CSV not found.")
+            return []
+            
         with open(app.config['ATTENDANCE_CSV'], 'r', encoding='utf-8') as f:
             reader = csv.reader(f)
             # Skip first row (title)
-            next(reader)
-            # Get header row with subjects
-            header = next(reader)
+            try:
+                next(reader)
+                # Get header row with subjects
+                header = next(reader)
+            except StopIteration:
+                return []
+                
             # Extract course codes starting from column 8 (index 7)
             courses = []
-            for i, col in enumerate(header[7:], 7):
-                if col and col.strip() not in ['Mobile Number', 'Attendance %', 'Attendance updated up to No. of Sessions']:
-                    code = col.strip()
-                    # Map course codes to full names
-                    course_names = {
-                        'ECOM': 'Econometrics',
-                        'CSI': 'Contemporary Social Issues',
-                        'LAW': 'Law',
-                        'LP': 'Linear Programming',
-                        'MVS': 'Multivariate Statistics',
-                        'AETH': 'Applied Ethics',
-                        'WD': 'Web Development',
-                        'LSF-II': 'French II',
-                        'LSS-II': 'Spanish II'
-                    }
-                    full_name = course_names.get(code, code)
-                    courses.append({'code': code, 'name': full_name})
+            if len(header) > 7:
+                for i, col in enumerate(header[7:], 7):
+                    if col and col.strip() not in ['Mobile Number', 'Attendance %', 'Attendance updated up to No. of Sessions']:
+                        code = col.strip()
+                        # Map course codes to full names
+                        course_names = {
+                            'ECOM': 'Econometrics',
+                            'CSI': 'Contemporary Social Issues',
+                            'LAW': 'Law',
+                            'LP': 'Linear Programming',
+                            'MVS': 'Multivariate Statistics',
+                            'AETH': 'Applied Ethics',
+                            'WD': 'Web Development',
+                            'LSF-II': 'French II',
+                            'LSS-II': 'Spanish II'
+                        }
+                        full_name = course_names.get(code, code)
+                        courses.append({'code': code, 'name': full_name})
             return courses
     except Exception as e:
         print(f"Error reading courses: {e}")
@@ -1845,7 +1904,8 @@ def study_materials():
         return render_template('study_materials.html', user=current_user, courses=courses)
     except Exception as e:
         print(f"CRITICAL Error in study_materials route: {e}")
-        return f"Internal Server Error: {e}", 500
+        # Return a valid page even if empty
+        return render_template('study_materials.html', user=current_user, courses=[], error="Unable to load courses.")
 
 @app.route('/study-materials/<course_code>')
 @login_required
