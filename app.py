@@ -1,8 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-import sqlite3
+import psycopg2
+import psycopg2.extras
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+load_dotenv('.env.local')
 from datetime import datetime, time
 import requests
 import re
@@ -16,7 +21,7 @@ import csv
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
-app.config['DATABASE'] = 'users.db'
+app.config['DATABASE'] = 'postgresql://neondb_owner:npg_aG0AXHZwe1Fb@ep-little-hill-adfj9zrj-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
 app.config['ATTENDANCE_CSV'] = 'attendance.csv'
 app.config['TIMETABLE_CSV'] = 'timetable.csv'
 
@@ -25,8 +30,8 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-app.config['RECAPTCHA_SITE_KEY'] = '6LdEGxQsAAAAANrCOOl8NAPb68ZvrlvC1HPOMAZo'
-app.config['RECAPTCHA_SECRET_KEY'] = '6LdEGxQsAAAAACcRR6OkK1MOBAlsDikyFfsPangx'
+app.config['RECAPTCHA_SITE_KEY'] = os.getenv('RECAPTCHA_SITE_KEY', '6LdEGxQsAAAAANrCOOl8NAPb68ZvrlvC1HPOMAZo')
+app.config['RECAPTCHA_SECRET_KEY'] = os.getenv('RECAPTCHA_SECRET_KEY', '6LdEGxQsAAAAACcRR6OkK1MOBAlsDikyFfsPangx')
 
 # Template filter for 12-hour time format
 @app.template_filter('time12')
@@ -57,13 +62,13 @@ class User(UserMixin):
         return self.role == 'professor'
 
 def init_db():
-    conn = sqlite3.connect(app.config['DATABASE'])
+    conn = psycopg2.connect(app.config['DATABASE'])
     cursor = conn.cursor()
     
     # Users table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             email TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
             full_name TEXT NOT NULL,
@@ -78,7 +83,7 @@ def init_db():
     # Chamber hours table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS chamber_hours (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             professor_id INTEGER NOT NULL,
             day_of_week TEXT NOT NULL,
             start_time TEXT NOT NULL,
@@ -92,7 +97,7 @@ def init_db():
     # Appointments table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS appointments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             student_id INTEGER NOT NULL,
             professor_id INTEGER NOT NULL,
             chamber_hour_id INTEGER NOT NULL,
@@ -109,7 +114,7 @@ def init_db():
     # Password resets table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS password_resets (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL,
             token TEXT NOT NULL,
             expires_at TEXT NOT NULL,
@@ -121,7 +126,7 @@ def init_db():
     # Feedbacks table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS feedbacks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER,
             course TEXT,
             q1 INTEGER,
@@ -137,7 +142,7 @@ def init_db():
     # Venue bookings table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS bookings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             user_id INTEGER,
             venue_type TEXT,
             block TEXT,
@@ -154,7 +159,7 @@ def init_db():
     # Study materials table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS study_materials (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             course_code TEXT NOT NULL,
             course_name TEXT NOT NULL,
             title TEXT NOT NULL,
@@ -172,11 +177,11 @@ def init_db():
     conn.close()
     # Announcements and read-tracking
     try:
-        conn = sqlite3.connect(app.config['DATABASE'])
+        conn = psycopg2.connect(app.config['DATABASE'])
         cursor = conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS announcements (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 title TEXT NOT NULL,
                 body TEXT NOT NULL,
                 created_by INTEGER,
@@ -186,7 +191,7 @@ def init_db():
 
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS announcement_reads (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 announcement_id INTEGER NOT NULL,
                 user_id INTEGER NOT NULL,
                 read_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -199,15 +204,15 @@ def init_db():
         pass
     # Ensure single admin user exists
     try:
-        conn = sqlite3.connect(app.config['DATABASE'])
+        conn = psycopg2.connect(app.config['DATABASE'])
         cursor = conn.cursor()
         admin_email = 'admin@iimidr.ac.in'
-        cursor.execute('SELECT * FROM users WHERE email = ?', (admin_email,))
+        cursor.execute('SELECT * FROM users WHERE email = %s', (admin_email,))
         if not cursor.fetchone():
             from werkzeug.security import generate_password_hash
             admin_pw = 'adminiim'
             pw_hash = generate_password_hash(admin_pw)
-            cursor.execute('INSERT INTO users (email, password_hash, full_name, student_id, role) VALUES (?, ?, ?, ?, ?)',
+            cursor.execute('INSERT INTO users (email, password_hash, full_name, student_id, role) VALUES (%s, %s, %s, %s, %s)',
                            (admin_email, pw_hash, 'Administrator', 'ADMIN', 'admin'))
             conn.commit()
         conn.close()
@@ -215,8 +220,7 @@ def init_db():
         pass
 
 def get_db():
-    conn = sqlite3.connect(app.config['DATABASE'])
-    conn.row_factory = sqlite3.Row
+    conn = psycopg2.connect(app.config['DATABASE'], cursor_factory=psycopg2.extras.DictCursor)
     return conn
 
 
@@ -250,7 +254,7 @@ def create_reset_token(user_id, expiry_minutes=60):
     expires_at = (datetime.utcnow() + pd.Timedelta(minutes=expiry_minutes)).isoformat()
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, ?)',
+    cursor.execute('INSERT INTO password_resets (user_id, token, expires_at) VALUES (%s, %s, %s)',
                    (user_id, token, expires_at))
     conn.commit()
     conn.close()
@@ -260,7 +264,7 @@ def create_reset_token(user_id, expiry_minutes=60):
 def verify_reset_token(token):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM password_resets WHERE token = ?', (token,))
+    cursor.execute('SELECT * FROM password_resets WHERE token = %s', (token,))
     row = cursor.fetchone()
     conn.close()
     if not row:
@@ -313,7 +317,7 @@ def send_reset_email(to_email, token):
 def load_user(user_id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))
+    cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
     user_data = cursor.fetchone()
     conn.close()
     
@@ -569,7 +573,7 @@ def login():
         
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+        cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
         user_data = cursor.fetchone()
         conn.close()
 
@@ -609,7 +613,7 @@ def forgot_password():
 
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE lower(email) = ?', (email,))
+        cursor.execute('SELECT * FROM users WHERE lower(email) = %s', (email,))
         user = cursor.fetchone()
         conn.close()
 
@@ -641,8 +645,8 @@ def reset_password(token):
         pw_hash = generate_password_hash(password)
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('UPDATE users SET password_hash = ? WHERE id = ?', (pw_hash, user_id))
-        cursor.execute('DELETE FROM password_resets WHERE user_id = ?', (user_id,))
+        cursor.execute('UPDATE users SET password_hash = %s WHERE id = %s', (pw_hash, user_id))
+        cursor.execute('DELETE FROM password_resets WHERE user_id = %s', (user_id,))
         conn.commit()
         conn.close()
 
@@ -697,7 +701,7 @@ def signup():
         
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+        cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
         existing_user = cursor.fetchone()
         
         if existing_user:
@@ -710,10 +714,10 @@ def signup():
         password_hash = generate_password_hash(password)
         cursor.execute('''
             INSERT INTO users (email, password_hash, full_name, student_id, role)
-            VALUES (?, ?, ?, ?, 'student')
+            VALUES (%s, %s, %s, %s, 'student') RETURNING id
         ''', (email, password_hash, full_name, student_id))
         conn.commit()
-        user_id = cursor.lastrowid
+        user_id = cursor.fetchone()[0]
         conn.close()
         
         user = User(user_id, email, full_name, student_id, 'student')
@@ -768,7 +772,7 @@ def professor_signup():
         
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+        cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
         existing_user = cursor.fetchone()
         
         if existing_user:
@@ -782,10 +786,10 @@ def professor_signup():
         password_hash = generate_password_hash(password)
         cursor.execute('''
             INSERT INTO users (email, password_hash, full_name, student_id, role, department, designation)
-            VALUES (?, ?, ?, ?, 'professor', ?, ?)
+            VALUES (%s, %s, %s, %s, 'professor', %s, %s) RETURNING id
         ''', (email, password_hash, full_name, employee_id, department, designation))
         conn.commit()
-        user_id = cursor.lastrowid
+        user_id = cursor.fetchone()[0]
         conn.close()
         
         user = User(user_id, email, full_name, employee_id, 'professor')
@@ -807,13 +811,13 @@ def professor_dashboard():
     cursor = conn.cursor()
     
     # Get chamber hours count
-    cursor.execute('SELECT COUNT(*) as count FROM chamber_hours WHERE professor_id = ?', 
+    cursor.execute('SELECT COUNT(*) as count FROM chamber_hours WHERE professor_id = %s', 
                   (current_user.id,))
     chamber_hours_count = cursor.fetchone()['count']
     
     # Get pending appointments count
     cursor.execute('''SELECT COUNT(*) as count FROM appointments 
-                     WHERE professor_id = ? AND status = 'pending' ''', 
+                     WHERE professor_id = %s AND status = 'pending' ''', 
                   (current_user.id,))
     pending_count = cursor.fetchone()['count']
     
@@ -865,14 +869,14 @@ def chamber_hours():
         
         cursor.execute('''
             INSERT INTO chamber_hours (professor_id, day_of_week, start_time, end_time, room_number)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s)
         ''', (current_user.id, date, start_time, end_time, room_number))
         conn.commit()
         flash('Chamber hour added successfully!', 'success')
         return redirect(url_for('chamber_hours'))
     
     cursor.execute('''SELECT * FROM chamber_hours 
-                     WHERE professor_id = ? ORDER BY day_of_week, start_time''', (current_user.id,))
+                     WHERE professor_id = %s ORDER BY day_of_week, start_time''', (current_user.id,))
     hours = cursor.fetchall()
     conn.close()
     
@@ -883,7 +887,7 @@ def chamber_hours():
 def delete_chamber_hour(hour_id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('DELETE FROM chamber_hours WHERE id = ? AND professor_id = ?', 
+    cursor.execute('DELETE FROM chamber_hours WHERE id = %s AND professor_id = %s', 
                   (hour_id, current_user.id))
     conn.commit()
     conn.close()
@@ -911,7 +915,7 @@ def book_appointment():
         
         cursor.execute('''
             INSERT INTO appointments (student_id, professor_id, chamber_hour_id, appointment_date, purpose)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s)
         ''', (current_user.id, professor_id, chamber_hour_id, appointment_date, purpose))
         conn.commit()
         conn.close()
@@ -932,7 +936,7 @@ def get_professor_hours(professor_id):
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute('''SELECT id, day_of_week, start_time, end_time, room_number 
-                     FROM chamber_hours WHERE professor_id = ? AND is_available = 1
+                     FROM chamber_hours WHERE professor_id = %s AND is_available = 1
                      ORDER BY day_of_week, start_time''', (professor_id,))
     hours = cursor.fetchall()
     conn.close()
@@ -951,7 +955,7 @@ def my_appointments():
         FROM appointments a
         JOIN users u ON a.professor_id = u.id
         JOIN chamber_hours ch ON a.chamber_hour_id = ch.id
-        WHERE a.student_id = ?
+        WHERE a.student_id = %s
         ORDER BY a.appointment_date DESC, a.created_at DESC
     ''', (current_user.id,))
     appointments = cursor.fetchall()
@@ -971,7 +975,7 @@ def professor_appointments():
         FROM appointments a
         JOIN users u ON a.student_id = u.id
         JOIN chamber_hours ch ON a.chamber_hour_id = ch.id
-        WHERE a.professor_id = ?
+        WHERE a.professor_id = %s
         ORDER BY a.status, a.appointment_date DESC, a.created_at DESC
     ''', (current_user.id,))
     appointments = cursor.fetchall()
@@ -990,8 +994,8 @@ def update_appointment(appointment_id, action):
     cursor = conn.cursor()
     
     status = 'accepted' if action == 'accept' else 'declined'
-    cursor.execute('''UPDATE appointments SET status = ? 
-                     WHERE id = ? AND professor_id = ?''', 
+    cursor.execute('''UPDATE appointments SET status = %s 
+                     WHERE id = %s AND professor_id = %s''', 
                   (status, appointment_id, current_user.id))
     conn.commit()
     conn.close()
@@ -1155,7 +1159,7 @@ def feedback_course(course):
         try:
             conn = get_db()
             cursor = conn.cursor()
-            cursor.execute('INSERT INTO feedbacks (user_id, course, q1, q2, q3, q4, q5, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            cursor.execute('INSERT INTO feedbacks (user_id, course, q1, q2, q3, q4, q5, remarks) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
                            (current_user.id, course_name, q1, q2, q3, q4, q5, remarks))
             conn.commit()
             conn.close()
@@ -1218,7 +1222,7 @@ def venue_booking():
 
         conn = get_db()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO bookings (user_id, venue_type, block, room_number, purpose, date, start_time, end_time, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        cursor.execute('INSERT INTO bookings (user_id, venue_type, block, room_number, purpose, date, start_time, end_time, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
                        (current_user.id, venue_type, block, room_number, purpose, date, start_time, end_time, 'pending'))
         conn.commit()
         conn.close()
@@ -1234,7 +1238,7 @@ def venue_booking():
     # Fetch user's bookings
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM bookings WHERE user_id = ? ORDER BY created_at DESC', (current_user.id,))
+    cursor.execute('SELECT * FROM bookings WHERE user_id = %s ORDER BY created_at DESC', (current_user.id,))
     bookings = cursor.fetchall()
     conn.close()
     
@@ -1282,7 +1286,7 @@ def leave_management():
     except Exception:
         pass
 
-    cursor.execute('SELECT * FROM leaves WHERE user_id = ? ORDER BY created_at DESC', (current_user.id,))
+    cursor.execute('SELECT * FROM leaves WHERE user_id = %s ORDER BY created_at DESC', (current_user.id,))
     leaves = cursor.fetchall()
 
     # Compute counts
@@ -1374,7 +1378,7 @@ def apply_leave():
 
     cursor.execute('''
         INSERT INTO leaves (user_id, leave_type, start_date, end_date, contact, reason, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     ''', (current_user.id, leave_type, start_date, end_date, contact, reason, 'pending', datetime.now().isoformat()))
     conn.commit()
     conn.close()
@@ -1433,7 +1437,7 @@ def admin_post_announcement():
 
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO announcements (title, body, created_by) VALUES (?, ?, ?)',
+    cursor.execute('INSERT INTO announcements (title, body, created_by) VALUES (%s, %s, %s)',
                    (title, body, current_user.id))
     conn.commit()
     conn.close()
@@ -1455,7 +1459,7 @@ def api_announcements():
     results = []
     for r in rows:
         aid = r['id']
-        cursor.execute('SELECT 1 FROM announcement_reads WHERE announcement_id = ? AND user_id = ?', (aid, current_user.id))
+        cursor.execute('SELECT 1 FROM announcement_reads WHERE announcement_id = %s AND user_id = %s', (aid, current_user.id))
         is_read = True if cursor.fetchone() else False
         body = r['body'] or ''
         preview = (body[:160] + '...') if len(body) > 160 else body
@@ -1491,7 +1495,7 @@ def admin_delete_announcement(aid):
     conn = get_db()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT id FROM announcements WHERE id = ?', (aid,))
+    cursor.execute('SELECT id FROM announcements WHERE id = %s', (aid,))
     if not cursor.fetchone():
         conn.close()
         flash('Announcement not found.', 'error')
@@ -1499,8 +1503,8 @@ def admin_delete_announcement(aid):
 
     # remove read-tracking entries first, then the announcement
     try:
-        cursor.execute('DELETE FROM announcement_reads WHERE announcement_id = ?', (aid,))
-        cursor.execute('DELETE FROM announcements WHERE id = ?', (aid,))
+        cursor.execute('DELETE FROM announcement_reads WHERE announcement_id = %s', (aid,))
+        cursor.execute('DELETE FROM announcements WHERE id = %s', (aid,))
         conn.commit()
     except Exception:
         conn.rollback()
@@ -1518,7 +1522,7 @@ def admin_delete_announcement(aid):
 def view_announcement(aid):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT id, title, body, created_by, created_at FROM announcements WHERE id = ?', (aid,))
+    cursor.execute('SELECT id, title, body, created_by, created_at FROM announcements WHERE id = %s', (aid,))
     row = cursor.fetchone()
     if not row:
         flash('Announcement not found', 'error')
@@ -1526,7 +1530,7 @@ def view_announcement(aid):
 
     # mark read
     try:
-        cursor.execute('INSERT OR IGNORE INTO announcement_reads (announcement_id, user_id) VALUES (?, ?)', (aid, current_user.id))
+        cursor.execute('INSERT INTO announcement_reads (announcement_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING', (aid, current_user.id))
         conn.commit()
     except Exception:
         pass
@@ -1541,7 +1545,7 @@ def api_mark_announcement_read(aid):
     conn = get_db()
     cursor = conn.cursor()
     try:
-        cursor.execute('INSERT OR IGNORE INTO announcement_reads (announcement_id, user_id) VALUES (?, ?)', (aid, current_user.id))
+        cursor.execute('INSERT INTO announcement_reads (announcement_id, user_id) VALUES (%s, %s) ON CONFLICT DO NOTHING', (aid, current_user.id))
         conn.commit()
     except Exception:
         pass
@@ -1560,7 +1564,7 @@ def announcements_list():
     # Attach read status
     ann = []
     for r in rows:
-        cursor.execute('SELECT 1 FROM announcement_reads WHERE announcement_id = ? AND user_id = ?', (r['id'], current_user.id))
+        cursor.execute('SELECT 1 FROM announcement_reads WHERE announcement_id = %s AND user_id = %s', (r['id'], current_user.id))
         is_read = True if cursor.fetchone() else False
         ann.append({'id': r['id'], 'title': r['title'], 'body': r['body'], 'created_at': r['created_at'], 'is_read': is_read})
     conn.close()
@@ -1675,7 +1679,7 @@ def admin_requests():
 def approve_booking(bid):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('UPDATE bookings SET status = ? WHERE id = ?', ('approved', bid))
+    cursor.execute('UPDATE bookings SET status = %s WHERE id = %s', ('approved', bid))
     conn.commit()
     conn.close()
     flash('Booking approved', 'success')
@@ -1688,7 +1692,7 @@ def approve_booking(bid):
 def deny_booking(bid):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('UPDATE bookings SET status = ? WHERE id = ?', ('denied', bid))
+    cursor.execute('UPDATE bookings SET status = %s WHERE id = %s', ('denied', bid))
     conn.commit()
     conn.close()
     flash('Booking denied', 'success')
@@ -1701,7 +1705,7 @@ def deny_booking(bid):
 def approve_leave(lid):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('UPDATE leaves SET status = ? WHERE id = ?', ('approved', lid))
+    cursor.execute('UPDATE leaves SET status = %s WHERE id = %s', ('approved', lid))
     conn.commit()
     conn.close()
     flash('Leave approved', 'success')
@@ -1714,7 +1718,7 @@ def approve_leave(lid):
 def deny_leave(lid):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('UPDATE leaves SET status = ? WHERE id = ?', ('disapproved', lid))
+    cursor.execute('UPDATE leaves SET status = %s WHERE id = %s', ('disapproved', lid))
     conn.commit()
     conn.close()
     flash('Leave denied', 'success')
@@ -1848,7 +1852,7 @@ def course_materials(course_code):
     query = '''SELECT sm.*, u.full_name as uploader_name 
                FROM study_materials sm 
                LEFT JOIN users u ON sm.uploaded_by = u.id 
-               WHERE sm.course_code = ?'''
+               WHERE sm.course_code = %s'''
     
     # Add sorting
     if sort_by == 'date_asc':
@@ -1914,7 +1918,7 @@ def upload_material():
     cursor = conn.cursor()
     cursor.execute('''INSERT INTO study_materials 
                       (course_code, course_name, title, description, file_path, uploaded_by)
-                      VALUES (?, ?, ?, ?, ?, ?)''',
+                      VALUES (%s, %s, %s, %s, %s, %s)''',
                    (course_code, course_name, title, description, file_url, current_user.id))
     conn.commit()
     conn.close()
@@ -1941,7 +1945,7 @@ def professor_upload_material():
         cursor = conn.cursor()
         cursor.execute('''INSERT INTO study_materials 
                           (course_code, course_name, title, description, file_path, uploaded_by)
-                          VALUES (?, ?, ?, ?, ?, ?)''',
+                          VALUES (%s, %s, %s, %s, %s, %s)''',
                        (course_code, course_name, title, description, file_url, current_user.id))
         conn.commit()
         conn.close()
@@ -1952,7 +1956,7 @@ def professor_upload_material():
     # GET request: show upload form with professor's courses
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT course_code, course_name FROM study_materials WHERE uploaded_by = ? ORDER BY course_name', 
+    cursor.execute('SELECT DISTINCT course_code, course_name FROM study_materials WHERE uploaded_by = %s ORDER BY course_name', 
                    (current_user.id,))
     course_rows = cursor.fetchall()
     conn.close()
@@ -1989,7 +1993,7 @@ def professor_upload_material():
     # Also fetch the professor's uploaded materials (for listing and potential delete)
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM study_materials WHERE uploaded_by = ? ORDER BY created_at DESC', (current_user.id,))
+    cursor.execute('SELECT * FROM study_materials WHERE uploaded_by = %s ORDER BY created_at DESC', (current_user.id,))
     materials = cursor.fetchall()
     conn.close()
 
@@ -2001,7 +2005,7 @@ def professor_upload_material():
 def delete_material(material_id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('DELETE FROM study_materials WHERE id = ?', (material_id,))
+    cursor.execute('DELETE FROM study_materials WHERE id = %s', (material_id,))
     conn.commit()
     conn.close()
     
@@ -2015,7 +2019,7 @@ def delete_material(material_id):
 def professor_delete_material(material_id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT uploaded_by FROM study_materials WHERE id = ?', (material_id,))
+    cursor.execute('SELECT uploaded_by FROM study_materials WHERE id = %s', (material_id,))
     row = cursor.fetchone()
     if not row:
         conn.close()
@@ -2027,7 +2031,7 @@ def professor_delete_material(material_id):
         flash('You are not allowed to delete this material', 'error')
         return redirect(url_for('professor_upload_material'))
 
-    cursor.execute('DELETE FROM study_materials WHERE id = ? AND uploaded_by = ?', (material_id, current_user.id))
+    cursor.execute('DELETE FROM study_materials WHERE id = %s AND uploaded_by = %s', (material_id, current_user.id))
     conn.commit()
     conn.close()
     flash('Material deleted successfully', 'success')
