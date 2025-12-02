@@ -173,6 +173,22 @@ def init_db():
         )
     ''')
 
+    # Leaves table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS leaves (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER,
+            leave_type TEXT,
+            start_date TEXT,
+            end_date TEXT,
+            contact TEXT,
+            reason TEXT,
+            status TEXT,
+            approver_notes TEXT,
+            created_at TEXT
+        )
+    ''')
+
     conn.commit()
     conn.close()
     # Announcements and read-tracking
@@ -1268,25 +1284,7 @@ def leave_management():
     # Ensure leaves table exists and fetch user's leave records
     conn = get_db()
     cursor = conn.cursor()
-    try:
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS leaves (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                leave_type TEXT,
-                start_date TEXT,
-                end_date TEXT,
-                contact TEXT,
-                reason TEXT,
-                status TEXT,
-                approver_notes TEXT,
-                created_at TEXT
-            )
-        ''')
-        conn.commit()
-    except Exception:
-        pass
-
+    
     cursor.execute('SELECT * FROM leaves WHERE user_id = %s ORDER BY created_at DESC', (current_user.id,))
     leaves = cursor.fetchall()
 
@@ -1363,20 +1361,7 @@ def apply_leave():
     # Save to database (create table if not exists)
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS leaves (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            leave_type TEXT,
-            start_date TEXT,
-            end_date TEXT,
-            contact TEXT,
-            reason TEXT,
-            status TEXT,
-            created_at TEXT
-        )
-    ''')
-
+    
     cursor.execute('''
         INSERT INTO leaves (user_id, leave_type, start_date, end_date, contact, reason, status, created_at)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
