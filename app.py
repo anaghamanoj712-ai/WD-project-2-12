@@ -339,6 +339,10 @@ def load_user(user_id):
     conn.close()
     
     if user_data:
+        # Debug logging for admin role issues
+        if user_data['email'] == 'admin@iimidr.ac.in':
+            print(f"DEBUG: Loading admin user. Role in DB: {user_data.get('role')}")
+
         # Try to infer section from attendance.csv by matching email
         section = None
         try:
@@ -904,11 +908,20 @@ def chamber_hours():
 def delete_chamber_hour(hour_id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('DELETE FROM chamber_hours WHERE id = %s AND professor_id = %s', 
-                  (hour_id, current_user.id))
-    conn.commit()
-    conn.close()
-    flash('Chamber hour deleted successfully!', 'success')
+    try:
+        # First delete associated appointments
+        cursor.execute('DELETE FROM appointments WHERE chamber_hour_id = %s', (hour_id,))
+        # Then delete the chamber hour
+        cursor.execute('DELETE FROM chamber_hours WHERE id = %s AND professor_id = %s', 
+                      (hour_id, current_user.id))
+        conn.commit()
+        flash('Chamber hour deleted successfully!', 'success')
+    except Exception as e:
+        conn.rollback()
+        print(f"Error deleting chamber hour: {e}")
+        flash('An error occurred while deleting the chamber hour.', 'error')
+    finally:
+        conn.close()
     return redirect(url_for('chamber_hours'))
 
 @app.route('/book-appointment', methods=['GET', 'POST'])
@@ -1253,11 +1266,15 @@ def venue_booking():
     venue_types = ['Classroom', 'Music Room', 'Auditorium', 'SAC Room']
     
     # Fetch user's bookings
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM bookings WHERE user_id = %s ORDER BY created_at DESC', (current_user.id,))
-    bookings = cursor.fetchall()
-    conn.close()
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM bookings WHERE user_id = %s ORDER BY created_at DESC', (current_user.id,))
+        bookings = cursor.fetchall()
+        conn.close()
+    except Exception as e:
+        print(f"Error fetching bookings: {e}")
+        bookings = []
     
     return render_template('venue_booking.html', user=current_user, blocks=blocks, room_numbers=room_numbers, venue_types=venue_types, bookings=bookings)
 
@@ -1800,30 +1817,35 @@ def get_courses_from_attendance():
 @app.route('/study-materials')
 @login_required
 def study_materials():
-    # Start from attendance-derived courses (enrolled courses shown to students)
-    courses = get_courses_from_attendance() or []
-
-    # Also include any course codes that professors have uploaded materials for
     try:
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT course_code, course_name FROM study_materials WHERE course_code IS NOT NULL AND TRIM(course_code) != ''")
-        rows = cursor.fetchall()
-        conn.close()
+        # Start from attendance-derived courses (enrolled courses shown to students)
+        courses = get_courses_from_attendance() or []
 
-        existing_codes = {c['code'] for c in courses}
-        for r in rows:
-            code = (r['course_code'] or '').strip()
-            name = (r['course_name'] or '').strip()
-            if not code:
-                continue
-            if code not in existing_codes:
-                courses.append({'code': code, 'name': name or code})
-                existing_codes.add(code)
-    except Exception:
-        # if DB read fails, fall back to attendance-only list
-        pass
-    return render_template('study_materials.html', user=current_user, courses=courses)
+        # Also include any course codes that professors have uploaded materials for
+        try:
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute("SELECT DISTINCT course_code, course_name FROM study_materials WHERE course_code IS NOT NULL AND TRIM(course_code) != ''")
+            rows = cursor.fetchall()
+            conn.close()
+
+            existing_codes = {c['code'] for c in courses}
+            for r in rows:
+                code = (r['course_code'] or '').strip()
+                name = (r['course_name'] or '').strip()
+                if not code:
+                    continue
+                if code not in existing_codes:
+                    courses.append({'code': code, 'name': name or code})
+                    existing_codes.add(code)
+        except Exception as e:
+            print(f"Error fetching study materials from DB: {e}")
+            # if DB read fails, fall back to attendance-only list
+            pass
+        return render_template('study_materials.html', user=current_user, courses=courses)
+    except Exception as e:
+        print(f"CRITICAL Error in study_materials route: {e}")
+        return f"Internal Server Error: {e}", 500
 
 @app.route('/study-materials/<course_code>')
 @login_required
