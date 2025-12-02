@@ -1943,10 +1943,12 @@ def course_materials(course_code):
     
     # Get course name
     courses = get_courses_from_attendance()
+    if courses is None:
+        courses = []
     course_name = course_code
     
     # Also check DB for course name if not found in attendance
-    if not any(c['code'] == course_code for c in courses):
+    if not any(c.get('code') == course_code for c in courses if isinstance(c, dict)):
          conn = get_db()
          cursor = conn.cursor()
          cursor.execute("SELECT DISTINCT course_name FROM study_materials WHERE course_code = %s LIMIT 1", (course_code,))
@@ -1956,8 +1958,8 @@ def course_materials(course_code):
              course_name = row['course_name']
 
     for course in courses:
-        if course['code'] == course_code:
-            course_name = course['name']
+        if isinstance(course, dict) and course.get('code') == course_code:
+            course_name = course.get('name', course_code)
             break
     
     return render_template('course_materials.html', user=current_user, 

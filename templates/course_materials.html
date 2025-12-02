@@ -200,16 +200,16 @@
                     <div class="material-title">{{ material['title'] }}</div>
                     <div class="material-date">📅 {{ material['created_at'][:16] }}</div>
                 </div>
-                {% if material['file_path'] %}
-                <a href="{{ material['file_path'] }}" target="_blank" class="download-btn">
-                    {% if material['file_path'].startswith('http') %}
-                    🔗 Open Link
-                    {% else %}
-                    📥 Download File
-                    {% endif %}
-                </a>
-                {% endif %}
             </div>
+
+            {% if material['file_path'] %}
+            <div style="margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; margin-bottom: 4px; font-weight: 600;">Link</div>
+                <a href="{{ material['file_path'] }}" target="_blank" style="color: #4c51bf; font-weight: 500; word-break: break-all; text-decoration: none; display: block;">
+                    {{ material['file_path'] }} <span style="font-size: 14px;">🔗</span>
+                </a>
+            </div>
+            {% endif %}
             
             {% if material['description'] %}
             <div class="material-description">{{ material['description'] }}</div>
