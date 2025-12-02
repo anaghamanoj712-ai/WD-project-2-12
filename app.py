@@ -288,6 +288,7 @@ def send_reset_email(to_email, token):
     smtp_port = int(os.environ.get('SMTP_PORT', '587')) if os.environ.get('SMTP_PORT') else None
     smtp_user = os.environ.get('SMTP_USER')
     smtp_pass = os.environ.get('SMTP_PASS')
+    smtp_from = os.environ.get('SMTP_FROM_EMAIL', smtp_user)
 
     subject = 'Password reset request'
     body = f"You requested a password reset. Click the link to reset your password:\n\n{reset_link}\n\nIf you did not request this, ignore this email."
@@ -297,7 +298,7 @@ def send_reset_email(to_email, token):
             msg = EmailMessage()
             msg.set_content(body)
             msg['Subject'] = subject
-            msg['From'] = smtp_user
+            msg['From'] = smtp_from
             msg['To'] = to_email
 
             with smtplib.SMTP(smtp_server, smtp_port) as s:
