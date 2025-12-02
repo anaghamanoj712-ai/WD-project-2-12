@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Verify OTP - Student Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    body { background: #0d0d0d; }
+    .auth-container {
+        max-width: 400px;
+        margin: 80px auto;
+        padding: 40px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    .auth-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .auth-header h2 {
+        color: #fff;
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    .auth-header p {
+        color: #999;
+        font-size: 14px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-group label {
+        display: block;
+        color: #ccc;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        background: #2d2d2d;
+        border: 1px solid #404040;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 16px;
+        transition: all 0.3s ease;
+    }
+    .form-control:focus {
+        border-color: #30d9a8;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(48, 217, 168, 0.2);
+    }
+    .btn-primary {
+        width: 100%;
+        padding: 12px;
+        background: #30d9a8;
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+        background: #40e0b8;
+        transform: translateY(-2px);
+    }
+    .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        color: #999;
+        text-decoration: none;
+        font-size: 14px;
+    }
+    .back-link:hover {
+        color: #30d9a8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-header">
+        <h2>Verify OTP</h2>
+        <p>Enter the 6-digit code sent to your email</p>
+    </div>
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="otp">One-Time Password</label>
+            <input type="text" id="otp" name="otp" class="form-control" placeholder="Enter 6-digit OTP" required maxlength="6" pattern="\d{6}" title="Please enter a 6-digit number">
+        </div>
+
+        <button type="submit" class="btn-primary">Verify OTP</button>
+    </form>
+
+    <a href="{{ url_for('forgot_password') }}" class="back-link">← Back to Email Entry</a>
+</div>
+{% endblock %}

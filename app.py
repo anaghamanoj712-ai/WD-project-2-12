@@ -269,46 +269,50 @@ def email_in_attendance(email):
     return False
 
 
-def create_reset_token(user_id, expiry_minutes=60):
-    token = secrets.token_urlsafe(32)
+def create_reset_otp(user_id, expiry_minutes=15):
+    # Generate 6-digit OTP
+    otp = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
     expires_at = (datetime.utcnow() + pd.Timedelta(minutes=expiry_minutes)).isoformat()
     conn = get_db()
     cursor = conn.cursor()
+    # Clear existing tokens for this user
+    cursor.execute('DELETE FROM password_resets WHERE user_id = %s', (user_id,))
+    # Insert new OTP
     cursor.execute('INSERT INTO password_resets (user_id, token, expires_at) VALUES (%s, %s, %s)',
-                   (user_id, token, expires_at))
+                   (user_id, otp, expires_at))
     conn.commit()
     conn.close()
-    return token
+    return otp
 
 
-def verify_reset_token(token):
+def verify_reset_otp(otp, user_id):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute('SELECT * FROM password_resets WHERE token = %s', (token,))
+    cursor.execute('SELECT * FROM password_resets WHERE token = %s AND user_id = %s', (otp, user_id))
     row = cursor.fetchone()
     conn.close()
     if not row:
-        return None
+        return False
     try:
         expires_at = datetime.fromisoformat(row['expires_at'])
     except Exception:
-        return None
+        return False
     if datetime.utcnow() > expires_at:
-        return None
-    return row['user_id']
+        return False
+    return True
 
-
-def send_reset_email(to_email, token):
-    # Build reset link
-    host = os.environ.get('APP_HOST', 'http://127.0.0.1:5000')
-    reset_link = f"{host}/reset-password/{token}"
-
-    subject = 'Password reset request'
+def send_reset_email(to_email, otp):
+    subject = 'Password Reset OTP'
     html_content = f"""
-    <p>You requested a password reset.</p>
-    <p>Click the link below to reset your password:</p>
-    <p><a href="{reset_link}">{reset_link}</a></p>
-    <p>If you did not request this, ignore this email.</p>
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>Password Reset Request</h2>
+        <p>Your One-Time Password (OTP) for resetting your password is:</p>
+        <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 8px;">
+            {otp}
+        </div>
+        <p>This code will expire in 15 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+    </div>
     """
 
     try:
@@ -320,12 +324,12 @@ def send_reset_email(to_email, token):
         }
 
         email = resend.Emails.send(params)
-        print(f"Password reset email sent to {to_email} via Resend. ID: {email.get('id')}")
+        print(f"OTP sent to {to_email} via Resend. ID: {email.get('id')}")
         return True
     except Exception as e:
-        print(f"Failed to send reset email via Resend: {e}")
+        print(f"Failed to send OTP via Resend: {e}")
         # Fallback to console for development
-        print(f"FALLBACK: Password reset link for {to_email}: {reset_link}")
+        print(f"FALLBACK: OTP for {to_email}: {otp}")
         return False
     return False
 
@@ -644,42 +648,83 @@ def forgot_password():
         conn.close()
 
         if user:
-            token = create_reset_token(user['id'])
-            send_reset_email(user['email'], token)
-
-        # Do not reveal whether email exists
-        flash('If an account with that email exists, a password reset link has been sent.', 'info')
-        return redirect(url_for('login'))
+            otp = create_reset_otp(user['id'])
+            send_reset_email(user['email'], otp)
+            session['reset_email'] = user['email']
+            session['reset_user_id'] = user['id']
+            return redirect(url_for('verify_otp'))
+        else:
+            # Do not reveal whether email exists, but for UX we might want to just say sent
+            # However, since we need to redirect to OTP page, if user doesn't exist, 
+            # we can't really redirect to OTP page effectively without a user ID.
+            # So we will just flash a message and stay here or redirect to login.
+            # But to mimic security, we could redirect to OTP page anyway but it will fail.
+            # For simplicity in this project, let's just say "If account exists..."
+            flash('If an account with that email exists, an OTP has been sent.', 'info')
+            # Redirect to verify_otp anyway to prevent enumeration, but without session data it will fail or redirect back
+            # Actually, let's just redirect to login as before if not found, or stay on page.
+            # The user wants to go to OTP page. If we go to OTP page without sending email, they can't proceed.
+            # So let's just redirect to login with the message.
+            return redirect(url_for('login'))
 
     return render_template('forgot_password.html')
 
 
-@app.route('/reset-password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
-    user_id = verify_reset_token(token)
-    if not user_id:
-        flash('Invalid or expired password reset token.', 'error')
-        return redirect(url_for('login'))
+@app.route('/verify-otp', methods=['GET', 'POST'])
+def verify_otp():
+    if 'reset_user_id' not in session:
+        flash('Session expired. Please try again.', 'error')
+        return redirect(url_for('forgot_password'))
+    
+    if request.method == 'POST':
+        otp = request.form.get('otp')
+        user_id = session.get('reset_user_id')
+        
+        if verify_reset_otp(otp, user_id):
+            session['otp_verified'] = True
+            return redirect(url_for('reset_password_new'))
+        else:
+            flash('Invalid or expired OTP.', 'error')
+    
+    return render_template('verify_otp.html')
 
+
+@app.route('/reset-password-new', methods=['GET', 'POST'])
+def reset_password_new():
+    if 'reset_user_id' not in session or not session.get('otp_verified'):
+        flash('Unauthorized access. Please verify OTP first.', 'error')
+        return redirect(url_for('forgot_password'))
+        
     if request.method == 'POST':
         password = request.form.get('password')
         password2 = request.form.get('password2')
+        
         if not password or password != password2:
             flash('Passwords do not match or are empty', 'error')
-            return render_template('reset_password.html', token=token)
+            return render_template('reset_password.html') # We can reuse the template or create new one
 
+        user_id = session['reset_user_id']
         pw_hash = generate_password_hash(password)
+        
         conn = get_db()
         cursor = conn.cursor()
         cursor.execute('UPDATE users SET password_hash = %s WHERE id = %s', (pw_hash, user_id))
+        # Clear OTP
         cursor.execute('DELETE FROM password_resets WHERE user_id = %s', (user_id,))
         conn.commit()
         conn.close()
+        
+        # Clear session
+        session.pop('reset_email', None)
+        session.pop('reset_user_id', None)
+        session.pop('otp_verified', None)
 
         flash('Password updated successfully. You can now log in.', 'success')
         return redirect(url_for('login'))
 
-    return render_template('reset_password.html', token=token)
+    # Reuse existing reset_password.html but we don't need token in context
+    return render_template('reset_password.html')
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
