@@ -311,20 +311,28 @@ def send_reset_email(to_email, token):
 
     if smtp_server and smtp_port and smtp_user and smtp_pass:
         try:
-            msg = EmailMessage()
-            msg.set_content(body)
-            msg['Subject'] = subject
-            msg['From'] = smtp_from
-            msg['To'] = to_email
+            # Use a thread to send email asynchronously to avoid blocking
+            import threading
+            def send_async():
+                try:
+                    msg = EmailMessage()
+                    msg.set_content(body)
+                    msg['Subject'] = subject
+                    msg['From'] = smtp_from
+                    msg['To'] = to_email
 
-            with smtplib.SMTP(smtp_server, smtp_port) as s:
-                s.starttls()
-                s.login(smtp_user, smtp_pass)
-                s.send_message(msg)
-            print(f"Password reset email sent to {to_email}")
+                    with smtplib.SMTP(smtp_server, smtp_port, timeout=10) as s:
+                        s.starttls()
+                        s.login(smtp_user, smtp_pass)
+                        s.send_message(msg)
+                    print(f"Password reset email sent to {to_email}")
+                except Exception as e:
+                    print(f"Failed to send reset email via SMTP (async): {e}")
+            
+            threading.Thread(target=send_async).start()
             return True
         except Exception as e:
-            print(f"Failed to send reset email via SMTP: {e}")
+            print(f"Failed to initiate async email sending: {e}")
             # Fallback to console if SMTP fails
             print(f"FALLBACK: Password reset link for {to_email}: {reset_link}")
             return False
@@ -832,6 +840,11 @@ def professor_signup():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    if current_user.is_authenticated:
+        if getattr(current_user, 'role', '') == 'admin':
+            return redirect(url_for('admin_dashboard'))
+        elif current_user.is_professor():
+            return redirect(url_for('professor_dashboard'))
     return render_template('dashboard.html', user=current_user)
 
 @app.route('/professor-dashboard')
@@ -1941,6 +1954,17 @@ def course_materials(course_code):
     # Get course name
     courses = get_courses_from_attendance()
     course_name = course_code
+    
+    # Also check DB for course name if not found in attendance
+    if not any(c['code'] == course_code for c in courses):
+         conn = get_db()
+         cursor = conn.cursor()
+         cursor.execute("SELECT DISTINCT course_name FROM study_materials WHERE course_code = %s LIMIT 1", (course_code,))
+         row = cursor.fetchone()
+         conn.close()
+         if row:
+             course_name = row['course_name']
+
     for course in courses:
         if course['code'] == course_code:
             course_name = course['name']

@@ -202,7 +202,11 @@
                 </div>
                 {% if material['file_path'] %}
                 <a href="{{ material['file_path'] }}" target="_blank" class="download-btn">
-                    📥 View/Download
+                    {% if material['file_path'].startswith('http') %}
+                    🔗 Open Link
+                    {% else %}
+                    📥 Download File
+                    {% endif %}
                 </a>
                 {% endif %}
             </div>

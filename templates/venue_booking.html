@@ -452,9 +452,16 @@
                         <label for="venue_type">Venue Type *</label>
                         <select id="venue_type" name="venue_type" required>
                             <option value="">-- Select Venue --</option>
-                            {% for vt in venue_types %}
-                            <option value="{{ vt }}">{{ vt }}</option>
-                            {% endfor %}
+                            {% if venue_types %}
+                                {% for vt in venue_types %}
+                                <option value="{{ vt }}">{{ vt }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="Classroom">Classroom</option>
+                                <option value="Music Room">Music Room</option>
+                                <option value="Auditorium">Auditorium</option>
+                                <option value="SAC Room">SAC Room</option>
+                            {% endif %}
                         </select>
                     </div>
 
