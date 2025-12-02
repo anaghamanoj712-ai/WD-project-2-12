@@ -33,43 +33,43 @@
 }
 .chamber-hours-form input, .chamber-hours-form select {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border: 2px solid #1cffaa;
-    color: #00ffff;
+    border: 2px solid #5affcd;
+    color: #40b4cc;
     border-radius:6px; padding: 9px 15px; font-size: 1rem; min-width:150px;
     font-family: inherit;
     transition: all 0.3s ease;
 }
 
 .chamber-hours-form input::placeholder {
-    color: #00ffcc;
+    color: #6bffdd;
 }
 
 .chamber-hours-form input:focus,
 .chamber-hours-form select:focus {
     outline: none;
-    border-color: #1cffaa;
+    border-color: #5affcd;
     background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
-    box-shadow: 0 0 15px rgba(28, 255, 170, 0.4), inset 0 0 10px rgba(28, 255, 170, 0.1);
+    box-shadow: 0 0 15px rgba(90, 255, 205, 0.3), inset 0 0 10px rgba(90, 255, 205, 0.1);
 }
 
 .chamber-hours-form select {
     cursor: pointer;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%231cffaa' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%2330d9a8' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 40px;
 }
 
 .chamber-hours-form button {
-    background: linear-gradient(135deg,#1cffaa 0%,#31e3dc 100%);
+    background: linear-gradient(135deg,#30d9a8 0%,#4ab8b0 100%);
     color:#173d2c; font-weight:700; font-size:1.07rem; border-radius:7px;
-    border:none; padding:10px 25px; cursor:pointer; box-shadow:0 2px 8px #16e9a440;
+    border:none; padding:10px 25px; cursor:pointer; box-shadow:0 2px 8px rgba(74,184,176,0.3);
     transition: all 0.18s;
 }
 .chamber-hours-form button:hover {
-    background: linear-gradient(135deg,#1cffda 0%,#4bffef 100%);
-    color:#0c2320; box-shadow:0 4px 18px #60effbbf;
+    background: linear-gradient(135deg,#40e0b8 0%,#5fc8c0 100%);
+    color:#0c2320; box-shadow:0 4px 18px rgba(74,184,176,0.5);
 }
 .chamber-flex-table {
     width:100%; border-collapse: collapse; background: #181c2b; border-radius: 13px; box-shadow: 0 2px 12px #173d4b1c; overflow: hidden;
@@ -89,33 +89,51 @@
 .chamber-flex-table td .delete-btn:hover {
     background:#61182f; color:#fff;
 }
+
+/* Calendar icon color for date inputs */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+}
 </style>
 {% endblock %}
 {% block content %}
 <div class="chamber-management-header">
-    <h1 style="font-weight:900; color:#8bfded;font-size:2rem; margin-bottom:7px;">🕑 Chamber Hours</h1>
+    <h1 style="font-weight:900; color:#5fb8c9;font-size:2rem; margin-bottom:7px;">🕑 Chamber Hours</h1>
     <p style="color:#aab;">Set or update your available slots for students to book meetings.</p>
 </div>
-<form method="POST" action="{{ url_for('chamber_hours') }}" class="chamber-hours-form">
-    <select name="day" required>
-        <option value="">Day</option>
-        <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
-        <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
-    </select>
-    <input type="time" name="start_time" required>
-    <input type="time" name="end_time" required>
+<form method="POST" action="{{ url_for('chamber_hours') }}" class="chamber-hours-form" id="chamberForm">
+    <input type="date" id="chamberDate" name="date" required placeholder="Date">
+    <div style="display:flex; gap:8px; align-items:center;">
+        <input type="number" name="start_hour" min="1" max="12" required placeholder="Hour" style="width:80px;">
+        <span style="color:#40b4cc;">:</span>
+        <input type="number" name="start_minute" min="0" max="59" required placeholder="Min" style="width:80px;">
+        <select name="start_period" required style="width:80px;">
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+        </select>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+        <input type="number" name="end_hour" min="1" max="12" required placeholder="Hour" style="width:80px;">
+        <span style="color:#40b4cc;">:</span>
+        <input type="number" name="end_minute" min="0" max="59" required placeholder="Min" style="width:80px;">
+        <select name="end_period" required style="width:80px;">
+            <option value="AM">AM</option>
+            <option value="PM">PM</option>
+        </select>
+    </div>
     <input type="text" name="room_number" placeholder="Room (optional)">
     <button type="submit">Add Slot</button>
 </form>
 <table class="chamber-flex-table">
     <tr>
-        <th>Day</th><th>Start</th><th>End</th><th>Room</th><th>Action</th>
+        <th>Date</th><th>Start</th><th>End</th><th>Room</th><th>Action</th>
     </tr>
     {% for hour in hours %}
     <tr>
         <td>{{ hour['day_of_week'] }}</td>
-        <td>{{ hour['start_time'] }}</td>
-        <td>{{ hour['end_time'] }}</td>
+        <td>{{ hour['start_time']|time12 }}</td>
+        <td>{{ hour['end_time']|time12 }}</td>
         <td>{{ hour['room_number'] or '—' }}</td>
         <td>
             <a href="{{ url_for('delete_chamber_hour', hour_id=hour['id']) }}" class="delete-btn" onclick="return confirm('Delete this entry?');">Delete</a>
@@ -123,4 +141,35 @@
     </tr>
     {% endfor %}
 </table>
+<script>
+document.querySelector('.chamber-hours-form').addEventListener('submit', function(e) {
+    const startHour = parseInt(document.querySelector('input[name="start_hour"]').value);
+    const startMinute = parseInt(document.querySelector('input[name="start_minute"]').value);
+    const startPeriod = document.querySelector('select[name="start_period"]').value;
+    const endHour = parseInt(document.querySelector('input[name="end_hour"]').value);
+    const endMinute = parseInt(document.querySelector('input[name="end_minute"]').value);
+    const endPeriod = document.querySelector('select[name="end_period"]').value;
+    
+    // Convert to 24-hour format for comparison
+    let start24 = startHour;
+    if (startPeriod === 'PM' && startHour !== 12) start24 += 12;
+    if (startPeriod === 'AM' && startHour === 12) start24 = 0;
+    
+    let end24 = endHour;
+    if (endPeriod === 'PM' && endHour !== 12) end24 += 12;
+    if (endPeriod === 'AM' && endHour === 12) end24 = 0;
+    
+    const startTotalMinutes = start24 * 60 + startMinute;
+    const endTotalMinutes = end24 * 60 + endMinute;
+    
+    if (endTotalMinutes <= startTotalMinutes) {
+        e.preventDefault();
+        alert('End time must be after start time!');
+        return false;
+    }
+});
+
+// Set minimum date to today for chamber hours
+document.getElementById('chamberDate').min = new Date().toISOString().split('T')[0];
+</script>
 {% endblock %}

@@ -4,59 +4,239 @@
 
 {% block extra_css %}
 <style>
-.course-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; }
-.course-card { background:#111;border:1px solid #222;padding:16px;border-radius:10px;text-align:left;color:#fff; display:flex; flex-direction:column; justify-content:space-between; }
-.course-card .card-body { display:block; }
-.course-card h4 { margin:0 0 8px 0; }
-.course-card p { margin:0;color:#ccc;font-size:13px }
-.course-card .meta { margin-top:8px; display:flex; flex-direction:column; gap:6px; }
-.course-card .meta .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.course-card .meta a.email { color:#fff; opacity:0.9; text-decoration:underline; margin-right:6px; }
-.course-card .cta { text-align:right; margin-top:12px; }
-.course-card .btn-feedback { background: linear-gradient(135deg,#1cffaa,#26d0d9); color:#001; padding:8px 12px; border-radius:8px; border:none; font-weight:700; cursor:pointer; text-decoration:none; }
+body { background: #0d0d0d; }
+.feedback-header { 
+    background: #1a1a1a; 
+    border: 1px solid #2a2a2a; 
+    border-radius: 16px; 
+    padding: 24px; 
+    margin-bottom: 30px; 
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+.feedback-header h1 { color: #fff; font-size: 28px; margin-bottom: 8px; }
+.feedback-header p { color: #999; font-size: 15px; }
+
+.course-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); 
+    gap: 24px; 
+    margin-bottom: 30px;
+}
+
+@media (max-width: 768px) {
+    .course-grid { grid-template-columns: 1fr; }
+}
+
+.course-card {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.course-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(90, 255, 205, 0.15);
+    border-color: #3a3a3a;
+    background: #1e1e1e;
+}.course-card .course-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.course-card h3 { 
+    color: #fff; 
+    font-size: 18px; 
+    margin: 0 0 8px 0; 
+    font-weight: 700;
+}
+
+.course-card .course-meta { 
+    display: flex; 
+    gap: 12px; 
+    flex-wrap: wrap; 
+    font-size: 13px; 
+    color: #999;
+}
+
+.course-card .course-meta span { 
+    display: inline-flex; 
+    align-items: center; 
+    gap: 4px;
+}
+
+.course-card .course-meta strong { 
+    color: #30d9a8; 
+    font-weight: 600;
+}
+
+.instructor-section {
+    margin: 16px 0;
+    padding: 14px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 8px;
+    border-left: 3px solid #30d9a8;
+    transition: all 0.3s ease;
+}
+
+.instructor-section:hover {
+    background: linear-gradient(135deg, #1e2340 0%, #1a2445 100%);
+    border-left-width: 4px;
+    transform: translateX(2px);
+    box-shadow: 0 4px 12px rgba(48, 217, 168, 0.15);
+}
+
+.instructor-section .label {
+    color: #30d9a8;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.instructor-section .name {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.instructor-section .email {
+    color: #00d4ff;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 2px;
+}
+
+.instructor-section .email:hover {
+    text-decoration: underline;
+}
+
+.associate-section {
+    margin: 16px 0;
+    padding: 14px;
+    background: linear-gradient(135deg, #2d1a2e 0%, #3e1621 100%);
+    border-radius: 8px;
+    border-left: 3px solid #ff6b9d;
+    transition: all 0.3s ease;
+}
+
+.associate-section:hover {
+    background: linear-gradient(135deg, #331e32 0%, #441b27 100%);
+    border-left-width: 4px;
+    transform: translateX(2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 157, 0.15);
+}
+
+.associate-section .label {
+    color: #ff6b9d;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.associate-section .name {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.associate-section .email {
+    color: #ffa0c0;
+    font-size: 13px;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 2px;
+}
+
+.associate-section .email:hover {
+    text-decoration: underline;
+}
+
+.btn-feedback { 
+    background: linear-gradient(135deg, #30d9a8 0%, #3faab8 100%); 
+    color: #001; 
+    padding: 10px 20px; 
+    border-radius: 8px; 
+    border: none; 
+    font-weight: 700; 
+    cursor: pointer; 
+    text-decoration: none; 
+    display: inline-block;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.btn-feedback:hover {
+    background: linear-gradient(135deg, #40e0b8 0%, #4bbac8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(48, 217, 168, 0.4);
+}
+
+.cta { 
+    text-align: right; 
+    margin-top: 16px; 
+    padding-top: 12px;
+    border-top: 1px solid #2a2a2a;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2 style="color:#fff;margin-bottom:12px;">Select a course to provide feedback</h2>
+<div class="feedback-header">
+    <h1>Select a course to provide feedback</h1>
+    <p>Choose a course below and share your feedback on instructors and course content</p>
+</div>
 
-    <div class="course-grid">
-        {% for c in courses %}
-        <div class="course-card">
-            {% if c is mapping %}
-            <div class="card-body">
-                <h4>{{ c['Name of the Courses'] }}</h4>
-                <p><strong>Code:</strong> {{ c['Code'] }} &nbsp; <strong>Credits:</strong> {{ c['Credit'] }} &nbsp; <strong>Type:</strong> {{ c['Core/Elective'] }}</p>
-                <div class="meta">
-                    <div class="row"><strong>Instructor:</strong>
-                        {% if c['Faculty Email ID'] %}
-                            <a class="email" href="mailto:{{ c['Faculty Email ID'] }}">{{ c['Faculty Email ID'] }}</a>
-                        {% endif %}
-                        <span style="color:#ccc">— {{ c['Name of Course Instructor'] }}</span>
-                    </div>
-                    <div class="row"><strong>Academic Associate:</strong>
-                        {% if c['Email ID of Academic Associate'] %}
-                            <a class="email" href="mailto:{{ c['Email ID of Academic Associate'] }}">{{ c['Email ID of Academic Associate'] }}</a>
-                        {% endif %}
-                        <span style="color:#ccc">— {{ c['Name of Academic Associate'] or 'Not Applicable' }}</span>
-                    </div>
-                </div>
-            </div>
-            {% else %}
-            <div class="card-body">
-                <h4>{{ c }}</h4>
-            </div>
-            {% endif %}
-            <div class="cta">
-                <a class="btn-feedback" href="{% if c is mapping %}{{ url_for('feedback_course', course=c['Name of the Courses']) }}{% else %}{{ url_for('feedback_course', course=c) }}{% endif %}">Provide feedback</a>
+<div class="course-grid">
+    {% for c in courses %}
+    <div class="course-card">
+        {% if c is mapping %}
+        <div class="course-header">
+            <h3>{{ c['Name of the Courses'] }}</h3>
+            <div class="course-meta">
+                <span><strong>Code:</strong> {{ c['Code'] }}</span>
+                <span><strong>Credits:</strong> {{ c['Credit'] }}</span>
+                <span><strong>Type:</strong> {{ c['Core/Elective'] }}</span>
             </div>
         </div>
-        {% endfor %}
+        
+        <div class="instructor-section">
+            <div class="label">Instructor:</div>
+            <div class="name">{{ c['Name of Course Instructor'] }}</div>
+            {% if c['Faculty Email ID'] %}
+            <a class="email" href="mailto:{{ c['Faculty Email ID'] }}">{{ c['Faculty Email ID'] }}</a>
+            {% endif %}
+        </div>
+        
+        <div class="associate-section">
+            <div class="label">Academic Associate:</div>
+            <div class="name">{{ c['Name of Academic Associate'] or 'Not Applicable' }}</div>
+            {% if c['Email ID of Academic Associate'] %}
+            <a class="email" href="mailto:{{ c['Email ID of Academic Associate'] }}">{{ c['Email ID of Academic Associate'] }}</a>
+            {% endif %}
+        </div>
+        
+        <div class="cta">
+            <a class="btn-feedback" href="{{ url_for('feedback_course', course=c['Name of the Courses']) }}">Provide feedback</a>
+        </div>
+        {% else %}
+        <div class="course-header">
+            <h3>{{ c }}</h3>
+        </div>
+        <div class="cta">
+            <a class="btn-feedback" href="{{ url_for('feedback_course', course=c) }}">Provide feedback</a>
+        </div>
+        {% endif %}
     </div>
-
-    <div style="margin-top:20px;">
-        <!-- per-page back removed; global back in base.html remains -->
-    </div>
-    </div>
+    {% endfor %}
+</div>
 {% endblock %}

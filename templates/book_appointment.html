@@ -2,37 +2,110 @@
 {% block title %}Book Appointment{% endblock %}
 {% block extra_css %}
 <style>
+body { background: #0d0d0d; }
+
+.dashboard-header {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-header h1 {
+    color: #fff;
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.dashboard-header p {
+    color: #999;
+    font-size: 15px;
+}
+
+form {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+label {
+    display: block;
+    color: #30d9a8;
+    font-weight: 500;
+    margin-bottom: 8px;
+    margin-top: 12px;
+}
+
 select, input, textarea {
   margin-bottom: 15px;
   padding: 12px 16px;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 2px solid #1cffaa;
+  border: 2px solid #5affcd;
   border-radius: 8px;
-  color: #00ffff;
+  color: #40b4cc;
   font-size: 14px;
   font-family: inherit;
   transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 select::placeholder, input::placeholder, textarea::placeholder {
-  color: #00ffcc;
+  color: #6bffdd;
 }
 
 select {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%231cffaa' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%2330d9a8' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 40px;
 }
 
+select:hover, input:hover, textarea:hover {
+  border-color: #6bffdd;
+  background: linear-gradient(135deg, #1e2340 0%, #1a2445 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(90, 255, 205, 0.15);
+}
+
 select:focus, input:focus, textarea:focus {
   outline: none;
-  border-color: #1cffaa;
+  border-color: #5affcd;
   background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
-  box-shadow: 0 0 15px rgba(28, 255, 170, 0.4), inset 0 0 10px rgba(28, 255, 170, 0.1);
-  color: #00ffff;
+  box-shadow: 0 0 15px rgba(90, 255, 205, 0.3), inset 0 0 10px rgba(90, 255, 205, 0.1);
+  color: #40b4cc;
+  transform: translateY(0);
+}
+
+.btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #30d9a8 0%, #3faab8 100%);
+    color: #001;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background: linear-gradient(135deg, #40e0b8 0%, #4bbac8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(48, 217, 168, 0.4);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(28, 255, 170, 0.4);
 }
 
 #prof-hours-table {
@@ -82,7 +155,7 @@ select:focus, input:focus, textarea:focus {
 {% block content %}
 <div class="dashboard-header">
     <h1>Book a Meeting</h1>
-    <p>Select a professor, slot, and tell them the reason for your visit.</p>
+    <p>Select a professor and their available chamber hour slot, then describe your meeting purpose.</p>
 </div>
 <form method="POST" id="bookingForm">
     <label>Professor:</label>
@@ -93,13 +166,19 @@ select:focus, input:focus, textarea:focus {
         {% endfor %}
     </select>
     <div id="hour-container"></div>
-    <label>Appointment Date:</label>
-    <input type="date" name="appointment_date" required>
     <label>Purpose:</label>
     <textarea name="purpose" required placeholder="What is the agenda for meeting?" rows="3"></textarea>
     <button type="submit" class="btn">Book Appointment</button>
 </form>
 <script>
+function convertTo12Hour(time24) {
+    const [hour24, minute] = time24.split(':').map(Number);
+    const period = hour24 >= 12 ? 'PM' : 'AM';
+    let hour12 = hour24 % 12;
+    if (hour12 === 0) hour12 = 12;
+    return `${hour12}:${minute.toString().padStart(2, '0')} ${period}`;
+}
+
 document.getElementById('profSelect').addEventListener('change', function() {
     let profID = this.value;
     document.getElementById("hour-container").innerHTML = "";
@@ -107,7 +186,9 @@ document.getElementById('profSelect').addEventListener('change', function() {
     fetch(`/api/professor-hours/${profID}`).then(res => res.json()).then(hours => {
         let html = '<label>Time Slot:</label><select name="chamber_hour_id" required>';
         for (let hr of hours) {
-            html += `<option value="${hr.id}">${hr.day_of_week}, ${hr.start_time}–${hr.end_time} [${hr.room_number || "—"}]</option>`;
+            const startTime12 = convertTo12Hour(hr.start_time);
+            const endTime12 = convertTo12Hour(hr.end_time);
+            html += `<option value="${hr.id}">${hr.day_of_week}, ${startTime12}–${endTime12} [${hr.room_number || "—"}]</option>`;
         }
         html += '</select>';
         document.getElementById("hour-container").innerHTML = html;

@@ -4,17 +4,30 @@
 
 {% block extra_css %}
 <style>
+    body { background: #0d0d0d; }
+    
     /* rely on base container size for consistent layout */
     .header {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         text-align: center;
         color: white;
-        margin-bottom: 30px;
     }
     .header h1 {
         font-size: 2.5rem;
         margin-bottom: 10px;
         font-weight: 600;
+        color: #fff;
     }
+    .header p {
+        color: #999;
+        font-size: 15px;
+    }
+    
     .main-grid {
         display: grid;
         grid-template-columns: 3fr 1fr;
@@ -93,17 +106,20 @@
             padding: 10px;
         }
     }
+    
     .form-card, .side-panel {
-        background: rgba(255, 255, 255, 0.95);
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
         border-radius: 16px;
         padding: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     }
+    
     .tabs {
         display: flex;
         gap: 10px;
         margin-bottom: 20px;
-        border-bottom: 2px solid #e0e0e0;
+        border-bottom: 2px solid #2a2a2a;
     }
     .tab {
         padding: 12px 24px;
@@ -112,16 +128,16 @@
         cursor: pointer;
         font-size: 16px;
         font-weight: 500;
-        color: #666;
+        color: #999;
         border-bottom: 3px solid transparent;
         transition: all 0.3s ease;
     }
     .tab:hover {
-        color: #667eea;
+        color: #30d9a8;
     }
     .tab.active {
-        color: #667eea;
-        border-bottom-color: #667eea;
+        color: #30d9a8;
+        border-bottom-color: #30d9a8;
     }
     .tab-content {
         display: none;
@@ -131,7 +147,7 @@
     }
     .form-title {
         font-size: 1.8rem;
-        color: #333;
+        color: #fff;
         margin-bottom: 20px;
         font-weight: 600;
     }
@@ -140,7 +156,7 @@
     }
     label {
         display: block;
-        color: #555;
+        color: #30d9a8;
         font-weight: 500;
         margin-bottom: 8px;
     }
@@ -151,15 +167,53 @@
     textarea {
         width: 100%;
         padding: 12px;
-        border: 2px solid #e0e0e0;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border: 2px solid #5affcd;
         border-radius: 8px;
+        color: #40b4cc;
         font-size: 16px;
-        transition: border-color 0.3s ease;
+        transition: all 0.3s ease;
         box-sizing: border-box;
     }
+    
+    input::placeholder, textarea::placeholder {
+        color: #6bffdd;
+    }
+    
+    /* Calendar icon color for date inputs */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    input[type="date"]::-webkit-calendar-picker-indicator:hover {
+        transform: scale(1.15);
+        filter: invert(1) brightness(1.3);
+    }
+    
+    select {
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%2330d9a8' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 40px;
+    }
+    
+    input:hover, select:hover, textarea:hover {
+        border-color: #6bffdd;
+        background: linear-gradient(135deg, #1e2340 0%, #1a2445 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(90, 255, 205, 0.15);
+    }
+    
     input:focus, select:focus, textarea:focus {
         outline: none;
-        border-color: #667eea;
+        border-color: #5affcd;
+        background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
+        box-shadow: 0 0 15px rgba(90, 255, 205, 0.3), inset 0 0 10px rgba(90, 255, 205, 0.1);
+        transform: translateY(0);
     }
     .form-row {
         display: grid;
@@ -174,22 +228,23 @@
     .submit-btn {
         width: 100%;
         padding: 14px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(135deg, #30d9a8 0%, #3faab8 100%);
+        color: #001;
         border: none;
         border-radius: 8px;
         font-size: 16px;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition: all 0.3s ease;
     }
     .submit-btn:hover {
+        background: linear-gradient(135deg, #40e0b8 0%, #4bbac8 100%);
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 20px rgba(48, 217, 168, 0.4);
     }
     .side-panel h3 {
         font-size: 1.3rem;
-        color: #333;
+        color: #fff;
         margin-bottom: 15px;
         font-weight: 600;
     }
@@ -203,35 +258,38 @@
         justify-content: space-between;
         align-items: center;
         padding: 12px;
-        background: #f8f9fa;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
         border-radius: 8px;
+        border: 1px solid #2a2a2a;
     }
     .status-label {
         font-weight: 500;
-        color: #555;
+        color: #999;
     }
     .status-count {
         font-size: 1.2rem;
         font-weight: 700;
     }
-    .status-count.approved { color: #10b981; }
-    .status-count.pending { color: #f59e0b; }
-    .status-count.denied { color: #ef4444; }
+    .status-count.approved { color: #30d9a8; }
+    .status-count.pending { color: #ffa500; }
+    .status-count.denied { color: #ff6b6b; }
     .history-list {
         max-height: 600px;
         overflow-y: auto;
     }
     .history-item {
-        background: #f8f9fa;
-        border-left: 4px solid #667eea;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border-left: 4px solid #30d9a8;
         padding: 16px;
         margin-bottom: 15px;
         border-radius: 8px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        transition: all 0.3s ease;
+        border: 1px solid #2a2a2a;
     }
     .history-item:hover {
         transform: translateX(4px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(48, 217, 168, 0.2);
+        border-color: #30d9a8;
     }
     .history-header {
         display: flex;
@@ -241,7 +299,7 @@
     }
     .history-venue {
         font-weight: 600;
-        color: #333;
+        color: #fff;
         font-size: 1.1rem;
     }
     .badge {
@@ -252,24 +310,27 @@
         text-transform: uppercase;
     }
     .badge.approved {
-        background: #d1fae5;
-        color: #065f46;
+        background: rgba(48, 217, 168, 0.2);
+        color: #30d9a8;
+        border: 1px solid #30d9a8;
     }
     .badge.pending {
-        background: #fef3c7;
-        color: #92400e;
+        background: rgba(255, 165, 0, 0.2);
+        color: #ffa500;
+        border: 1px solid #ffa500;
     }
     .badge.denied {
-        background: #fee2e2;
-        color: #991b1b;
+        background: rgba(255, 107, 107, 0.2);
+        color: #ff6b6b;
+        border: 1px solid #ff6b6b;
     }
     .history-meta {
-        color: #666;
+        color: #999;
         font-size: 14px;
         line-height: 1.6;
     }
     .history-meta strong {
-        color: #333;
+        color: #30d9a8;
     }
     .no-history {
         text-align: center;
@@ -279,6 +340,94 @@
     }
     #classroomOptions {
         display: none;
+    }
+    
+    /* Uniform time input styling */
+    .time-input-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 2px solid #5affcd;
+        transition: all 0.3s ease;
+    }
+    
+    .time-input-group:hover {
+        border-color: #6bffdd;
+        background: linear-gradient(135deg, #1e2340 0%, #1a2445 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(90, 255, 205, 0.15);
+    }
+    
+    .time-input-group:focus-within {
+        border-color: #5affcd;
+        background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
+        box-shadow: 0 0 15px rgba(90, 255, 205, 0.3), inset 0 0 10px rgba(90, 255, 205, 0.1);
+        transform: translateY(0);
+    }
+    
+    .time-input-group input[type="number"] {
+        width: 70px !important;
+        min-width: 70px;
+        max-width: 70px;
+        flex: 0 0 70px;
+        background: transparent;
+        border: none;
+        padding: 8px 6px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: #40b4cc;
+        margin: 0;
+    }
+    
+    .time-input-group input[type="number"]:focus {
+        outline: none;
+        background: rgba(64, 180, 204, 0.1);
+        border-radius: 4px;
+        box-shadow: none;
+    }
+    
+    .time-input-group input[type="number"]::placeholder {
+        color: #6bffdd;
+        opacity: 0.6;
+        font-weight: 500;
+    }
+    
+    .time-input-group select {
+        width: 75px !important;
+        min-width: 75px;
+        max-width: 75px;
+        flex: 0 0 75px;
+        background: rgba(48, 217, 168, 0.15);
+        border: 1px solid #30d9a8;
+        padding: 8px 10px;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 700;
+        color: #30d9a8;
+        margin: 0;
+        border-radius: 6px;
+        cursor: pointer;
+        appearance: none;
+        text-align-last: center;
+    }
+    
+    .time-input-group select:focus {
+        outline: none;
+        background: rgba(48, 217, 168, 0.25);
+        box-shadow: 0 0 8px rgba(48, 217, 168, 0.4);
+    }
+    
+    .time-input-group .time-separator {
+        color: #40b4cc;
+        font-size: 24px;
+        font-weight: 700;
+        flex: 0 0 auto;
+        line-height: 1;
+        user-select: none;
     }
 </style>
 {% endblock %}
@@ -342,14 +491,34 @@
                         <input type="date" id="date" name="date" required>
                     </div>
 
-                    <div class="time-group">
-                        <div class="form-group">
-                            <label for="start_time">Start Time *</label>
-                            <input type="time" id="start_time" name="start_time" required>
+                    <script>
+                        // Set minimum date to today for venue booking
+                        document.getElementById('date').min = new Date().toISOString().split('T')[0];
+                    </script>
+
+                    <div class="form-group">
+                        <label>Start Time *</label>
+                        <div class="time-input-group">
+                            <input type="number" name="start_hour" min="1" max="12" required placeholder="Hour">
+                            <span class="time-separator">:</span>
+                            <input type="number" name="start_minute" min="0" max="59" required placeholder="Min">
+                            <select name="start_period" required>
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
                         </div>
-                        <div class="form-group">
-                            <label for="end_time">End Time *</label>
-                            <input type="time" id="end_time" name="end_time" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>End Time *</label>
+                        <div class="time-input-group">
+                            <input type="number" name="end_hour" min="1" max="12" required placeholder="Hour">
+                            <span class="time-separator">:</span>
+                            <input type="number" name="end_minute" min="0" max="59" required placeholder="Min">
+                            <select name="end_period" required>
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                            </select>
                         </div>
                     </div>
 
@@ -369,7 +538,7 @@
                         </div>
                         <div class="history-meta">
                             <strong>Date:</strong> {{ booking['date'] }}<br>
-                            <strong>Time:</strong> {{ booking['start_time'] }} - {{ booking['end_time'] }}<br>
+                            <strong>Time:</strong> {{ booking['start_time']|time12 }} - {{ booking['end_time']|time12 }}<br>
                             <strong>Purpose:</strong> {{ booking['purpose'] }}<br>
                             {% if booking['approver_notes'] %}
                             <strong>Admin Notes:</strong> {{ booking['approver_notes'] }}<br>

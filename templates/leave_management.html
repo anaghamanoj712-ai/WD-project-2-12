@@ -4,281 +4,443 @@
 
 {% block extra_css %}
 <style>
-/* match booking form inputs so date fields show the same styled control */
-select, input, textarea {
-    margin-bottom: 15px;
-    padding: 12px 16px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border: 2px solid #1cffaa;
-    border-radius: 8px;
-    color: #00ffff;
-    font-size: 14px;
-    font-family: inherit;
+body { background: #0d0d0d; }
+
+.header {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+.header h1 {
+    color: #fff;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.header p {
+    color: #999;
+    font-size: 15px;
+}
+
+.main-grid {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .header h1 {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header h1 {
+        font-size: 1.4rem;
+    }
+    
+    .header p {
+        font-size: 12px;
+    }
+}
+
+.form-card, .side-panel {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #2a2a2a;
+}
+
+.tab {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    color: #999;
+    border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
 }
 
-select::placeholder, input::placeholder, textarea::placeholder {
-    color: #00ffcc;
+.tab:hover {
+    color: #30d9a8;
+}
+
+.tab.active {
+    color: #30d9a8;
+    border-bottom-color: #30d9a8;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.form-title {
+    font-size: 1.8rem;
+    color: #fff;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    color: #30d9a8;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+input[type="text"],
+input[type="date"],
+select,
+textarea {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 2px solid #5affcd;
+    border-radius: 8px;
+    color: #40b4cc;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+input::placeholder, textarea::placeholder {
+    color: #6bffdd;
+}
+
+/* Calendar icon color for date inputs */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    transform: scale(1.15);
+    filter: invert(1) brightness(1.3);
 }
 
 select {
     cursor: pointer;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%231cffaa' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%2330d9a8' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 40px;
 }
 
-select:focus, input:focus, textarea:focus {
-    outline: none;
-    border-color: #1cffaa;
-    background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
-    box-shadow: 0 0 15px rgba(28, 255, 170, 0.4), inset 0 0 10px rgba(28, 255, 170, 0.1);
-    color: #00ffff;
+input:hover, select:hover, textarea:hover {
+    border-color: #6bffdd;
+    background: linear-gradient(135deg, #1e2340 0%, #1a2445 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(90, 255, 205, 0.15);
 }
 
-    .back-btn {
-        display: inline-block;
-        margin-bottom: 16px;
-        padding: 8px 12px;
-        background: #2a2a2a;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 6px;
-        border: 1px solid #444;
-    }
-    .back-btn:hover { background: #333; transform: translateY(-1px); }
-    .leave-management-container {
-        display: flex;
-        gap: 20px;
-    }
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #5affcd;
+    background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
+    box-shadow: 0 0 15px rgba(90, 255, 205, 0.3), inset 0 0 10px rgba(90, 255, 205, 0.1);
+    transform: translateY(0);
+}
 
-    /* tablet and mobile: stack vertically */
-    @media (max-width: 768px) {
-        .leave-management-container {
-            flex-direction: column;
-            gap: 15px;
-        }
+.submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #30d9a8 0%, #3faab8 100%);
+    color: #001;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
 
-        .leave-management-form {
-            flex: 1;
-            padding: 15px;
-        }
+.submit-btn:hover {
+    background: linear-gradient(135deg, #40e0b8 0%, #4bbac8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(48, 217, 168, 0.4);
+}
 
-        .back-btn {
-            padding: 6px 10px;
-            font-size: 12px;
-        }
-    }
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(28, 255, 170, 0.4);
+}
 
-    /* mobile: small layouts */
-    @media (max-width: 480px) {
-        .leave-management-container {
-            flex-direction: column;
-            gap: 10px;
-        }
+.side-panel h3 {
+    font-size: 1.3rem;
+    color: #fff;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
 
-        .leave-management-form {
-            padding: 10px;
-            margin-top: 5px;
-        }
+.status-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
 
-        .leave-management-form input,
-        .leave-management-form select,
-        .leave-management-form textarea {
-            font-size: 14px;
-            padding: 8px;
-        }
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 8px;
+    border: 1px solid #2a2a2a;
+}
 
-        .back-btn {
-            padding: 5px 8px;
-            font-size: 11px;
-        }
-    }
+.status-label {
+    font-weight: 500;
+    color: #999;
+}
 
-    .leave-management-form {
-        margin-top: 10px;
-        background: #2a2a2a;
-        padding: 20px;
-        border-radius: 8px;
-        border: 1px solid #333;
-        flex: 2;
-    }
+.status-count {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
 
-    .leave-management-form label {
-        color: #fff;
-        font-weight: 500;
-        margin-top: 10px;
-        display: block;
-    }
+.status-count.approved { color: #30d9a8; }
+.status-count.pending { color: #ffa500; }
+.status-count.disapproved { color: #ff6b6b; }
 
-    .leave-management-form input,
-    .leave-management-form select,
-    .leave-management-form textarea {
-        width: 100%;
-        padding: 10px;
-        margin-top: 5px;
-        border: 1px solid #444;
-        border-radius: 4px;
-        background: #1a1a1a;
-        color: #fff;
-    }
+.history-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
 
-    .leave-management-form button {
-        margin-top: 15px;
-        background: #fff;
-        color: #000;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-    }
+.history-item {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-left: 4px solid #30d9a8;
+    padding: 16px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid #2a2a2a;
+}
 
-    .leave-management-form button:hover {
-        background: #f0f0f0;
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(255, 255, 255, 0.2);
-    }
+.history-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(48, 217, 168, 0.2);
+    border-color: #30d9a8;
+}
 
-    .leave-status-panel {
-        background: #2a2a2a;
-        padding: 20px;
-        border-radius: 8px;
-        border: 1px solid #333;
-        flex: 1;
-    }
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
 
-    .leave-status-panel h4 {
-        color: #fff;
-        margin-bottom: 10px;
-    }
+.history-type {
+    font-weight: 600;
+    color: #fff;
+    font-size: 1.1rem;
+}
 
-    .leave-status-panel ul {
-        list-style-type: none;
-        padding: 0;
-        color: #ccc;
-    }
+.badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
 
-    .leave-status-panel ul li {
-        margin: 8px 0;
-    }
-    .tabs { display:flex; gap:8px; margin-bottom:12px; }
-    .tab { padding:10px 16px; background:#e9ecef; border-radius:8px; cursor:pointer; color:#222; font-weight:600 }
-    .tab.active { background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.08) }
-    .history-list { display:flex; flex-direction:column; gap:12px; }
-    .history-item { background:#fff; color:#111; border-radius:8px; padding:12px; border:1px solid #e6e6e6 }
-    .badge { padding:6px 10px; border-radius:14px; font-weight:700; font-size:13px }
-    .badge.approved { background:#e6ffef; color:#087f4b; border:1px solid #b7f0cf }
-    .badge.pending { background:#fff7e6; color:#aa6b00; border:1px solid #ffecb8 }
-    .badge.disapproved { background:#ffecec; color:#a90000; border:1px solid #f1b8b8 }
-    .history-meta { display:flex; justify-content:space-between; gap:8px; align-items:center }
-    .history-reason { color:#333; margin-top:8px }
+.badge.approved {
+    background: rgba(48, 217, 168, 0.2);
+    color: #30d9a8;
+    border: 1px solid #30d9a8;
+}
+
+.badge.pending {
+    background: rgba(255, 165, 0, 0.2);
+    color: #ffa500;
+    border: 1px solid #ffa500;
+}
+
+.badge.disapproved {
+    background: rgba(255, 107, 107, 0.2);
+    color: #ff6b6b;
+    border: 1px solid #ff6b6b;
+}
+
+.history-meta {
+    color: #999;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.history-meta strong {
+    color: #30d9a8;
+}
+
+.no-history {
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-size: 16px;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="leave-management-container">
-    <div class="leave-management-form">
-        <div class="tabs">
-            <div class="tab active" id="tab-apply">Apply for Leave</div>
-            <div class="tab" id="tab-history">View Leave History</div>
-        </div>
+<div class="container">
+    <div class="header">
+        <h1>📝 Leave Application</h1>
+        <p>Apply for leave and track your leave requests</p>
+    </div>
 
-        <div id="panel-apply">
-            <form method="POST" action="{{ url_for('apply_leave') }}">
-                <label for="leaveType">Leave Type:</label>
-                <select id="leaveType" name="leaveType" required>
-                    <option value="">Select leave type</option>
-                    <option value="Sick Leave">Sick Leave</option>
-                    <option value="Personal Leave">Personal Leave</option>
-                    <option value="Study Leave">Study Leave</option>
-                    <option value="Vacation">Vacation</option>
-                </select>
+    <div class="main-grid">
+        <div class="form-card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('apply')">Apply for Leave</button>
+                <button class="tab" onclick="switchTab('history')">View Leave History</button>
+            </div>
 
-                <label for="startDate">Start Date:</label>
-                <input type="date" id="startDate" name="startDate" required>
+            <div id="apply-tab" class="tab-content active">
+                <h2 class="form-title">Request a Leave</h2>
+                <form method="POST" action="{{ url_for('apply_leave') }}">
+                    <div class="form-group">
+                        <label for="leaveType">Leave Type *</label>
+                        <select id="leaveType" name="leaveType" required>
+                            <option value="">-- Select Leave Type --</option>
+                            <option value="Sick Leave">Sick Leave</option>
+                            <option value="Personal Leave">Personal Leave</option>
+                            <option value="Study Leave">Study Leave</option>
+                            <option value="Vacation">Vacation</option>
+                        </select>
+                    </div>
 
-                <label for="endDate">End Date:</label>
-                <input type="date" id="endDate" name="endDate" required>
+                    <div class="form-group">
+                        <label for="startDate">Start Date *</label>
+                        <input type="date" id="startDate" name="startDate" required>
+                    </div>
 
-                <!-- Contact number removed per request -->
+                    <div class="form-group">
+                        <label for="endDate">End Date *</label>
+                        <input type="date" id="endDate" name="endDate" required>
+                    </div>
 
-                <label for="reason">Reason for Leave:</label>
-                <textarea id="reason" name="reason" required></textarea>
+                    <script>
+                        // Set minimum date to today for leave dates
+                        const today = new Date().toISOString().split('T')[0];
+                        document.getElementById('startDate').min = today;
+                        document.getElementById('endDate').min = today;
+                        
+                        // Ensure end date is after start date
+                        document.getElementById('startDate').addEventListener('change', function() {
+                            document.getElementById('endDate').min = this.value || today;
+                        });
+                    </script>
 
-                <button type="submit">Submit Leave Request</button>
-            </form>
-        </div>
+                    <div class="form-group">
+                        <label for="reason">Reason for Leave *</label>
+                        <textarea id="reason" name="reason" rows="4" required placeholder="Please describe the reason for your leave request"></textarea>
+                    </div>
 
-        <div id="panel-history" style="display:none;margin-top:8px;">
-            <div class="history-list">
+                    <button type="submit" class="submit-btn">Submit Leave Request</button>
+                </form>
+            </div>
+
+            <div id="history-tab" class="tab-content">
+                <h2 class="form-title">Leave History</h2>
                 {% if history %}
+                <div class="history-list">
                     {% for h in history %}
                     <div class="history-item">
-                        <div class="history-meta">
-                            <div>
-                                <strong>{{ h.leave_type }}</strong>
-                                <div style="font-size:13px;color:#666">{{ h.start_date }} - {{ h.end_date }}</div>
-                            </div>
-                            <div>
-                                {% if h.status == 'approved' %}
-                                    <span class="badge approved">Approved</span>
-                                {% elif h.status == 'disapproved' %}
-                                    <span class="badge disapproved">Disapproved</span>
-                                {% else %}
-                                    <span class="badge pending">Pending</span>
-                                {% endif %}
-                            </div>
+                        <div class="history-header">
+                            <span class="history-type">{{ h.leave_type }}</span>
+                            <span class="badge {{ h.status }}">{{ h.status }}</span>
                         </div>
-                        <div class="history-reason">Reason: {{ h.reason }}</div>
-                        {% if h.approver_notes %}
-                        <div style="margin-top:8px;color:#444">Approver Notes: {{ h.approver_notes }}</div>
-                        {% endif %}
+                        <div class="history-meta">
+                            <strong>Duration:</strong> {{ h.start_date }} to {{ h.end_date }}<br>
+                            <strong>Reason:</strong> {{ h.reason }}<br>
+                            {% if h.approver_notes %}
+                            <strong>Admin Notes:</strong> {{ h.approver_notes }}<br>
+                            {% endif %}
+                            <strong>Submitted:</strong> {{ h.created_at[:16] if h.created_at else 'N/A' }}
+                        </div>
                     </div>
                     {% endfor %}
+                </div>
                 {% else %}
-                    <div style="color:#ccc">No leave history found.</div>
+                <div class="no-history">
+                    <p>📋 No leave history yet. Submit your first leave request!</p>
+                </div>
                 {% endif %}
             </div>
         </div>
-    </div>
-    <div class="leave-status-panel">
-        <h4>Leave Status</h4>
-        <ul>
-            <li>Approved: {{ counts.approved if counts else 0 }}</li>
-            <li>Pending: {{ counts.pending if counts else 0 }}</li>
-            <li>Disapproved: {{ counts.disapproved if counts else 0 }}</li>
-        </ul>
+
+        <div class="side-panel">
+            <h3>📊 Leave Status</h3>
+            <div class="status-summary">
+                <div class="status-item">
+                    <span class="status-label">Approved</span>
+                    <span class="status-count approved">{{ counts.approved if counts else 0 }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Pending</span>
+                    <span class="status-count pending">{{ counts.pending if counts else 0 }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Disapproved</span>
+                    <span class="status-count disapproved">{{ counts.disapproved if counts else 0 }}</span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    // Date validation + Simple tab toggling
-    (function(){
-        // Tab toggling
-        var tabApply = document.getElementById('tab-apply');
-        var tabHistory = document.getElementById('tab-history');
-        tabApply.addEventListener('click', function(){
-            document.getElementById('panel-apply').style.display = '';
-            document.getElementById('panel-history').style.display = 'none';
-            this.classList.add('active');
-            tabHistory.classList.remove('active');
-        });
-        tabHistory.addEventListener('click', function(){
-            document.getElementById('panel-apply').style.display = 'none';
-            document.getElementById('panel-history').style.display = '';
-            this.classList.add('active');
-            tabApply.classList.remove('active');
-        });
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        
+        if (tabName === 'apply') {
+            document.querySelector('.tab:first-child').classList.add('active');
+            document.getElementById('apply-tab').classList.add('active');
+        } else {
+            document.querySelector('.tab:last-child').classList.add('active');
+            document.getElementById('history-tab').classList.add('active');
+        }
+    }
 
-        // Date inputs & validation
+    // Date validation
+    (function(){
         var startInput = document.getElementById('startDate');
         var endInput = document.getElementById('endDate');
         var form = document.querySelector('form[action="{{ url_for('apply_leave') }}"]');
 
-        // Helper to format today's date as YYYY-MM-DD
         function todayISO(){
             var d = new Date();
             var mm = String(d.getMonth()+1).padStart(2,'0');
@@ -286,17 +448,14 @@ select:focus, input:focus, textarea:focus {
             return d.getFullYear() + '-' + mm + '-' + dd;
         }
 
-        // Set minimum for start and end date to today
         var today = todayISO();
         if(startInput) startInput.setAttribute('min', today);
         if(endInput) endInput.setAttribute('min', today);
 
-        // When start date changes, ensure end's min is start date
         if(startInput && endInput){
             startInput.addEventListener('input', function(){
                 if(this.value){
                     endInput.setAttribute('min', this.value);
-                    // If end is before start, clear it
                     if(endInput.value && endInput.value < this.value){
                         endInput.value = this.value;
                     }
@@ -306,7 +465,6 @@ select:focus, input:focus, textarea:focus {
             });
         }
 
-        // Final client-side validation on submit
         function validYearPart(dateStr){
             if(!dateStr) return false;
             var parts = dateStr.split('-');

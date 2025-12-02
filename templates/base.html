@@ -11,8 +11,8 @@
             --accent:#9be7ff;
         }
 
-        /* background image and overlay */
-        #bg-image { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-size: cover; background-position: center; background-repeat: no-repeat; background-color: #000; }
+        /* background gradient */
+        #bg-image { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%); }
         #bg-overlay { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: rgba(0,0,0,0.2); }
 
         /* main app container - laptop-first fixed max width and centered */
@@ -376,13 +376,13 @@
             <div id="announce-list" style="max-height:480px; overflow:auto;">
             </div>
             <div style="padding:10px; text-align:center; border-top:1px solid rgba(255,255,255,0.04);">
-                <a id="announce-see-all" href="/announcements" style="color:#9be7ff; text-decoration:none; font-weight:700;">View all announcements</a>
+                <a id="announce-see-all" href="/announcements" style="color:#6bb8d9; text-decoration:none; font-weight:700;">View all announcements</a>
             </div>
         </div>
     </div>
     {% endif %}
-    <!-- background image and overlay -->
-    <div id="bg-image" style="background-image: url('{{ url_for('static', filename='images/iim-indore-bg.jpeg') }}');"></div>
+    <!-- background gradient -->
+    <div id="bg-image"></div>
     <div id="bg-overlay"></div>
 
     <div class="container">
@@ -707,11 +707,38 @@
 
         back.addEventListener('click', function(e){
             e.preventDefault();
-            try{
-                if(document.referrer){ var r = new URL(document.referrer); if(r.origin === location.origin){ history.back(); return; } }
-            }catch(e){}
-            if(history.length > 1){ history.back(); return; }
-            window.location = '/';
+            var currentPath = window.location.pathname;
+            var dashboardUrl = '/';
+            
+            // Special handling for course materials - go back to study materials list
+            // Route is /study-materials/<course_code>, so check if path has more than just /study-materials
+            if(currentPath.startsWith('/study-materials/')) {
+                window.location = '/study-materials';
+                return;
+            }
+            
+            // Check if on student pages
+            if(currentPath === '/study-materials' ||
+               currentPath.includes('/dashboard') || 
+               currentPath.includes('/venue-booking') || 
+               currentPath.includes('/leave') || 
+               currentPath.includes('/attendance') || 
+               currentPath.includes('/feedback') || 
+               currentPath.includes('/book-appointment') ||
+               currentPath.includes('/my-appointments')) {
+                dashboardUrl = '/dashboard';
+            }
+            // Check if on professor pages
+            else if(currentPath.includes('/professor') || 
+                    currentPath.includes('/chamber-hours')) {
+                dashboardUrl = '/professor-dashboard';
+            }
+            // Check if on admin pages
+            else if(currentPath.includes('/admin')) {
+                dashboardUrl = '/admin';
+            }
+            
+            window.location = dashboardUrl;
         });
     })();
     </script>
@@ -726,7 +753,7 @@
     #confirm-modal .dialog { position: relative; background: #0f1720; color: #fff; border-radius: 12px; padding: 20px; width: 420px; max-width: calc(100% - 40px); box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 2; }
     #confirm-modal .dialog h3 { margin-bottom:8px; font-size:18px; color:#fff; }
     #confirm-modal .dialog p { margin-bottom:18px; color:#cfe; font-size:14px; }
-    #confirm-modal .dialog .ok-btn { background: linear-gradient(135deg,#1cffaa 0%,#31e3dc 100%); border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:700; color:#000; }
+    #confirm-modal .dialog .ok-btn { background: linear-gradient(135deg,#30d9a8 0%,#4ab8b0 100%); border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:700; color:#000; }
     @media (max-width:480px){ #confirm-modal .dialog{ width: 94%; padding:14px } }
 </style>
 

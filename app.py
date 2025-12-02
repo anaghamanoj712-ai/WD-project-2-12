@@ -28,6 +28,21 @@ login_manager.login_view = 'login'
 app.config['RECAPTCHA_SITE_KEY'] = '6LdEGxQsAAAAANrCOOl8NAPb68ZvrlvC1HPOMAZo'
 app.config['RECAPTCHA_SECRET_KEY'] = '6LdEGxQsAAAAACcRR6OkK1MOBAlsDikyFfsPangx'
 
+# Template filter for 12-hour time format
+@app.template_filter('time12')
+def time12_format(time_str):
+    """Convert 24-hour time (HH:MM) to 12-hour format with AM/PM"""
+    try:
+        hour, minute = map(int, time_str.split(':'))
+        period = 'AM' if hour < 12 else 'PM'
+        if hour == 0:
+            hour = 12
+        elif hour > 12:
+            hour -= 12
+        return f"{hour}:{minute:02d} {period}"
+    except:
+        return time_str
+
 # User class for Flask-Login
 class User(UserMixin):
     def __init__(self, id, email, full_name, student_id, role='student', section=None):
@@ -816,30 +831,48 @@ def chamber_hours():
     cursor = conn.cursor()
     
     if request.method == 'POST':
-        day = request.form.get('day')
-        start_time = request.form.get('start_time')
-        end_time = request.form.get('end_time')
+        date = request.form.get('date')
+        start_hour = int(request.form.get('start_hour'))
+        start_minute = int(request.form.get('start_minute'))
+        start_period = request.form.get('start_period')
+        end_hour = int(request.form.get('end_hour'))
+        end_minute = int(request.form.get('end_minute'))
+        end_period = request.form.get('end_period')
         room_number = request.form.get('room_number')
+        
+        # Convert 12-hour to 24-hour format for storage
+        if start_period == 'PM' and start_hour != 12:
+            start_hour += 12
+        elif start_period == 'AM' and start_hour == 12:
+            start_hour = 0
+            
+        if end_period == 'PM' and end_hour != 12:
+            end_hour += 12
+        elif end_period == 'AM' and end_hour == 12:
+            end_hour = 0
+        
+        start_time = f"{start_hour:02d}:{start_minute:02d}"
+        end_time = f"{end_hour:02d}:{end_minute:02d}"
+        
+        # Validate that end time is after start time
+        start_total_minutes = start_hour * 60 + start_minute
+        end_total_minutes = end_hour * 60 + end_minute
+        
+        if end_total_minutes <= start_total_minutes:
+            flash('End time must be after start time!', 'error')
+            conn.close()
+            return redirect(url_for('chamber_hours'))
         
         cursor.execute('''
             INSERT INTO chamber_hours (professor_id, day_of_week, start_time, end_time, room_number)
             VALUES (?, ?, ?, ?, ?)
-        ''', (current_user.id, day, start_time, end_time, room_number))
+        ''', (current_user.id, date, start_time, end_time, room_number))
         conn.commit()
         flash('Chamber hour added successfully!', 'success')
         return redirect(url_for('chamber_hours'))
     
     cursor.execute('''SELECT * FROM chamber_hours 
-                     WHERE professor_id = ? ORDER BY 
-                     CASE day_of_week 
-                        WHEN 'Monday' THEN 1
-                        WHEN 'Tuesday' THEN 2
-                        WHEN 'Wednesday' THEN 3
-                        WHEN 'Thursday' THEN 4
-                        WHEN 'Friday' THEN 5
-                        WHEN 'Saturday' THEN 6
-                        WHEN 'Sunday' THEN 7
-                     END, start_time''', (current_user.id,))
+                     WHERE professor_id = ? ORDER BY day_of_week, start_time''', (current_user.id,))
     hours = cursor.fetchall()
     conn.close()
     
@@ -870,8 +903,11 @@ def book_appointment():
     if request.method == 'POST':
         professor_id = request.form.get('professor_id')
         chamber_hour_id = request.form.get('chamber_hour_id')
-        appointment_date = request.form.get('appointment_date')
         purpose = request.form.get('purpose')
+        
+        # Auto-set appointment date to current date
+        from datetime import date
+        appointment_date = date.today().isoformat()
         
         cursor.execute('''
             INSERT INTO appointments (student_id, professor_id, chamber_hour_id, appointment_date, purpose)
@@ -897,15 +933,7 @@ def get_professor_hours(professor_id):
     cursor = conn.cursor()
     cursor.execute('''SELECT id, day_of_week, start_time, end_time, room_number 
                      FROM chamber_hours WHERE professor_id = ? AND is_available = 1
-                     ORDER BY CASE day_of_week 
-                        WHEN 'Monday' THEN 1
-                        WHEN 'Tuesday' THEN 2
-                        WHEN 'Wednesday' THEN 3
-                        WHEN 'Thursday' THEN 4
-                        WHEN 'Friday' THEN 5
-                        WHEN 'Saturday' THEN 6
-                        WHEN 'Sunday' THEN 7
-                     END, start_time''', (professor_id,))
+                     ORDER BY day_of_week, start_time''', (professor_id,))
     hours = cursor.fetchall()
     conn.close()
     
@@ -1153,10 +1181,38 @@ def venue_booking():
         room_number = request.form.get('room_number')
         purpose = request.form.get('purpose')
         date = request.form.get('date')
-        start_time = request.form.get('start_time')
-        end_time = request.form.get('end_time')
+        
+        # Get 12-hour time format inputs
+        start_hour = int(request.form.get('start_hour'))
+        start_minute = int(request.form.get('start_minute'))
+        start_period = request.form.get('start_period')
+        end_hour = int(request.form.get('end_hour'))
+        end_minute = int(request.form.get('end_minute'))
+        end_period = request.form.get('end_period')
+        
+        # Convert 12-hour to 24-hour format for storage
+        if start_period == 'PM' and start_hour != 12:
+            start_hour += 12
+        elif start_period == 'AM' and start_hour == 12:
+            start_hour = 0
+            
+        if end_period == 'PM' and end_hour != 12:
+            end_hour += 12
+        elif end_period == 'AM' and end_hour == 12:
+            end_hour = 0
+        
+        start_time = f"{start_hour:02d}:{start_minute:02d}"
+        end_time = f"{end_hour:02d}:{end_minute:02d}"
+        
+        # Validate that end time is after start time
+        start_total_minutes = start_hour * 60 + start_minute
+        end_total_minutes = end_hour * 60 + end_minute
+        
+        if end_total_minutes <= start_total_minutes:
+            flash('End time must be after start time!', 'error')
+            return redirect(url_for('venue_booking'))
 
-        if not venue_type or not date or not start_time or not end_time or not purpose:
+        if not venue_type or not date or not purpose:
             flash('Please fill all required booking fields.', 'error')
             return redirect(url_for('venue_booking'))
 

@@ -4,23 +4,33 @@
 
 {% block extra_css %}
 <style>
-    /* use base background and laptop-first container */
-    /* use base container for consistent sizing */
+    body { background: #0d0d0d; }
+    
     .header {
-        text-align: center;
-        color: white;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 24px;
         margin-bottom: 30px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        text-align: center;
     }
     .header h1 {
+        color: #fff;
         font-size: 2.5rem;
         margin-bottom: 10px;
         font-weight: 600;
     }
+    .header p {
+        color: #999;
+        font-size: 15px;
+    }
+    
     .back-btn {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: #fff;
+        background: #30d9a8;
         color: #000;
         padding: 10px 20px;
         border-radius: 8px;
@@ -31,54 +41,66 @@
         margin-bottom: 20px;
     }
     .back-btn:hover {
-        background: #f0f0f0;
-        transform: translateX(-4px);
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+        background: #40e0b8;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(48, 217, 168, 0.4);
     }
+    
     .courses-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 20px;
     }
+    
     .course-card {
-        background: rgba(255, 255, 255, 0.95);
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
         border-radius: 16px;
         padding: 24px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         transition: all 0.3s ease;
         cursor: pointer;
         text-decoration: none;
         color: inherit;
         display: block;
     }
+    
     .course-card:hover {
         transform: translateY(-4px);
-        box-shadow: 0 15px 40px rgba(0,0,0,0.3);
-        background: rgba(255, 255, 255, 1);
+        box-shadow: 0 8px 24px rgba(48, 217, 168, 0.2);
+        border-color: #30d9a8;
     }
+    
     .course-code {
         font-size: 14px;
-        color: #666;
+        color: #30d9a8;
         font-weight: 600;
         margin-bottom: 8px;
         text-transform: uppercase;
     }
+    
     .course-name {
         font-size: 20px;
-        color: #333;
+        color: #fff;
         font-weight: 700;
         margin-bottom: 12px;
     }
+    
     .course-desc {
-        color: #666;
+        color: #999;
         font-size: 14px;
         line-height: 1.5;
     }
+    
     .no-courses {
         text-align: center;
-        color: white;
+        color: #999;
         font-size: 18px;
         margin: 60px 0;
+        padding: 40px;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
     }
 </style>
 {% endblock %}

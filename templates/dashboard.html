@@ -269,7 +269,7 @@
 
 {% block content %}
 <div class="dashboard-header">
-    <h1>Welcome Back, {{ user.full_name }}! 👋</h1>
+    <h1>Welcome Back, {{ user.full_name }}!</h1>
     <p>Access all your academic services in one place</p>
     
     <div class="user-info">
@@ -298,7 +298,7 @@
     
     <a href="{{ url_for('book_appointment') }}" class="service-card">
         <h3>📮 Book Appointment</h3>
-        <p>Request a meeting with a professor — choose date/time and reason.</p>
+        <p>Request a meeting with a professor</p>
     </a>
     
     <a href="{{ url_for('leave_management') }}" class="service-card">
