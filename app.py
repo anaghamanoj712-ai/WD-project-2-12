@@ -1936,15 +1936,15 @@ def study_materials():
             rows = cursor.fetchall()
             conn.close()
 
-            existing_codes = {c.get('code') for c in courses if isinstance(c, dict) and 'code' in c}
+            existing_codes = {c.get('code').upper() for c in courses if isinstance(c, dict) and 'code' in c}
             for r in rows:
                 code = (r['course_code'] or '').strip()
                 name = (r['course_name'] or '').strip()
                 if not code:
                     continue
-                if code not in existing_codes:
+                if code.upper() not in existing_codes:
                     courses.append({'code': code, 'name': name or code})
-                    existing_codes.add(code)
+                    existing_codes.add(code.upper())
         except Exception as e:
             print(f"Error fetching study materials from DB: {e}")
             # if DB read fails, fall back to attendance-only list
@@ -1968,7 +1968,7 @@ def course_materials(course_code):
     query = '''SELECT sm.*, u.full_name as uploader_name 
                FROM study_materials sm 
                LEFT JOIN users u ON sm.uploaded_by = u.id 
-               WHERE sm.course_code = %s'''
+               WHERE UPPER(sm.course_code) = UPPER(%s)'''
     
     # Add sorting
     if sort_by == 'date_asc':
@@ -2103,7 +2103,7 @@ def professor_upload_material():
     default_courses = [
         ('WD', 'Web Development'),
         ('LSS-II', 'Language Skills Spanish II'),
-        ('EcoM', 'Econometrics'),
+        ('ECOM', 'Econometrics'),
         ('CSI', 'Contemporary Social Issues'),
         ('AETH', 'Applied Ethics'),
         ('LAW', 'Law'),
