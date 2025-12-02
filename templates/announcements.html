@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}All Announcements{% endblock %}
+
+{% block extra_css %}
+<style>
+.ann-list { margin:24px auto; }
+.ann-item { background:#141419; border:1px solid #24242a; padding:18px; border-radius:10px; margin-bottom:12px; color:#eaf; display:flex; flex-direction:column; gap:10px; align-items:flex-start; }
+.ann-item.unread { box-shadow:0 8px 30px rgba(0,0,0,0.6); border-left:6px solid #1cffaa; background:linear-gradient(90deg, rgba(28,255,170,0.03), transparent); }
+.ann-item.read { opacity:0.72; }
+.ann-item h3 { margin:0; font-size:18px; font-weight:700; color:#1cffaa; }
+.ann-item .body { color:#dfe; font-size:14px; line-height:1.5; }
+.ann-item .meta { color:#9aa; font-size:11px; margin-top:4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div style="margin:20px 0; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+        <h1 style="color:#fff;">Announcements</h1>
+        <div style="color:#9aa;">You can mark items read by opening them.</div>
+    </div>
+
+    <div class="ann-list">
+        {% for a in announcements %}
+        <a href="{{ url_for('view_announcement', aid=a.id) }}" style="text-decoration:none; display:block;">
+            <div class="ann-item {% if not a.is_read %}unread{% endif %}">
+                <h3>{{ a.title }}</h3>
+                <div class="body">{{ a.body[:300] }}{% if a.body|length > 300 %}...{% endif %}</div>
+                <div class="meta">Published: {{ a.created_at }}</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

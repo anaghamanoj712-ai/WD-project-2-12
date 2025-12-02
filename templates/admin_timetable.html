@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Timetable{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 style="color:#fff;">Timetable (Admin View)</h2>
+    {% if timetable and timetable.time_slots %}
+    <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;">
+        <thead>
+            <tr style="background:#f6f6f6;text-align:left;">
+                <th style="padding:10px;border-bottom:1px solid #e6e6e6">Date</th>
+                {% for ts in timetable.time_slots %}
+                <th style="padding:10px;border-bottom:1px solid #e6e6e6">{{ ts }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for day, slots in timetable.schedule.items() %}
+            <tr>
+                <td style="padding:10px;border-bottom:1px solid #eee;vertical-align:top">{{ day }}</td>
+                {% for ts in timetable.time_slots %}
+                <td style="padding:10px;border-bottom:1px solid #eee;vertical-align:top">
+                    {% if slots.get(ts) %}
+                        {% for item in slots.get(ts) %}
+                            <div style="margin-bottom:6px;font-weight:700">{{ item.class }}</div>
+                            <div style="color:#666">Room: {{ item.room }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="color:#ccc">No timetable data available.</div>
+    {% endif %}
+    </div>
+{% endblock %}

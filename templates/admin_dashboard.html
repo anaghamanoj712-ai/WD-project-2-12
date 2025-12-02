@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Use base layout's background and spacing; keep minor top spacing for the header */
+    .dashboard-header { margin-top: 2px; }
+
+    /* container uses base layout (login page) */
+
+    .dashboard-header {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .dashboard-header h1 {
+        color: #fff;
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .dashboard-header p {
+        color: #999;
+        font-size: 16px;
+    }
+
+    .user-info {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        border: 1px solid #333;
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 20px;
+    }
+
+    .user-info p {
+        margin: 8px 0;
+        font-size: 14px;
+        color: #ccc;
+    }
+
+    .user-info strong {
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    /* tablet */
+    @media (max-width: 768px) {
+        .services-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .dashboard-header {
+            padding: 20px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 24px;
+        }
+
+        .container { max-width: 100%; }
+    }
+
+    /* mobile */
+    @media (max-width: 480px) {
+        .services-grid {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .dashboard-header {
+            padding: 15px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 20px;
+        }
+
+        .dashboard-header p {
+            font-size: 14px;
+        }
+
+        body {
+            padding-top: 20px;
+        }
+    }
+
+    .service-card {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .service-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
+        border-color: #444;
+        background: #222;
+    }
+
+    .service-card h3 {
+        color: #fff;
+        font-size: 20px;
+        margin-bottom: 8px;
+    }
+
+    .service-card p {
+        color: #999;
+        font-size: 14px;
+    }
+
+    .logout-btn {
+        background: #fff;
+        color: #000;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .logout-btn:hover {
+        background: #f0f0f0;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <h1>Administrator Dashboard 👨‍💼</h1>
+    <p>Manage student records, attendance, and portal settings</p>
+    
+    <div class="user-info">
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Role:</strong> Administrator</p>
+        <p><strong>Status:</strong> Active</p>
+    </div>
+
+    <!-- composer moved to a dedicated admin announcements page -->
+</div>
+
+<h2 style="color: #fff; margin-bottom: 20px;">Quick Access</h2>
+<div class="services-grid">
+    <a href="{{ url_for('admin_attendance') }}" class="service-card">
+        <h3>📊 Attendance</h3>
+        <p>View all students' attendance records</p>
+    </a>
+    
+    <a href="{{ url_for('admin_feedbacks') }}" class="service-card">
+        <h3>💬 Feedback</h3>
+        <p>Review student feedback submissions</p>
+    </a>
+    
+    <a href="{{ url_for('admin_requests') }}" class="service-card">
+        <h3>📝 Leave & Venue Requests</h3>
+        <p>Approve or deny student requests</p>
+    </a>
+    
+    <a href="{{ url_for('admin_announcements') }}" class="service-card">
+        <h3>📣 Announcements</h3>
+        <p>Publish announcements to students and professors</p>
+    </a>
+</div>
+
+{% if recent_announcements and recent_announcements|length > 0 %}
+<h2 style="color: #fff; margin-top:18px;">Recent Announcements</h2>
+    <div style="display:grid; gap:10px; margin-top:8px;">
+    {% for a in recent_announcements %}
+    <div style="background:#0f0f12; border:1px solid #222; padding:12px; border-radius:8px; color:#e7f;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+            <div style="flex:1;">
+                <strong style="font-size:15px;">{{ a.title }}</strong>
+                <div style="color:#9aa; font-size:12px; margin-top:4px;">{{ a.snippet }}{% if a.snippet|length >= 240 %}...{% endif %}</div>
+            </div>
+            <div style="color:#9aa; font-size:12px; text-align:right; min-width:120px;">{{ a.created_at }}</div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="text-align: center; margin-top: 40px;">
+    <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+</div>
+
+<div class="footer">
+    <p style="color: #666;">© 2025 Student Portal - Admin Panel. All rights reserved.</p>
+</div>
+{% endblock %}

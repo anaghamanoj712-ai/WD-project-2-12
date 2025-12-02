@@ -1,0 +1,58 @@
+/* Global dark theme overrides — unify card and panel aesthetics across pages */
+:root {
+    --card-grad: linear-gradient(135deg,#0f0f12 0%, #17171a 100%);
+    --card-border: #22242b;
+    --muted-text: #9aa;
+}
+
+/* Apply dark gradient boxes to commonly used page blocks and cards.
+   The rules are placed after per-page `extra_css` so they override
+   templates that used light backgrounds. */
+.container .header,
+.course-card,
+.material-card,
+.no-materials,
+.no-courses,
+.announce-item,
+.controls,
+.upload-form,
+.request-card,
+.subject-card,
+.page-header,
+.header-section,
+.announce-form,
+.materials-grid,
+.card {
+    background: var(--card-grad) !important;
+    border: 1px solid var(--card-border) !important;
+    color: #e6f9f8 !important;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.6) !important;
+    border-radius: 12px !important;
+}
+
+/* Headings and key titles should remain bright on dark cards */
+.course-card .course-name,
+.material-title,
+.card-header h1,
+.header h1,
+.header .course-code,
+.material-date {
+    color: #ffffff !important;
+}
+
+/* Soften helper text */
+.material-description,
+.course-desc,
+.card-body p,
+.announce-item .announce-body {
+    color: #cfe !important;
+}
+
+/* Keep buttons visually distinct — don't force all to dark; preserve existing CTA styles */
+.download-btn { background: linear-gradient(135deg,#667eea 0%, #5a6fd8 100%) !important; color:#fff !important; }
+
+/* Ensure form controls keep the dark input styling across pages */
+input, select, textarea { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important; color:#00ffff !important; border:2px solid #1cffaa !important; }
+
+/* small helpers for legacy templates that used large white blocks */
+.no-materials, .no-courses { background: var(--card-grad) !important; color: #ccc !important; }

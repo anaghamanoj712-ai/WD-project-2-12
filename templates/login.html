@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Student & Professor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1>🔐 Login</h1>
+        <p>Sign in as a student or professor</p>
+    </div>
+    <div class="card-body">
+        {# Show only error flashes on the login page (e.g., wrong credentials or captcha failures) #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        {% if category == 'error' %}
+                            <div class="alert alert-error" style="color:#b91c1c; background: rgba(185,28,28,0.04); border-radius:6px; padding:10px; margin-bottom:12px; text-align:center;">
+                                {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="your@email.com" value="{{ email or '' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="captcha-container">
+                <div class="g-recaptcha" data-sitekey="{{ site_key }}" data-theme="dark"></div>
+            </div>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <div style="margin-top:10px; text-align:center;">
+            <a href="{{ url_for('forgot_password') }}" class="link">Forgot password?</a>
+        </div>
+        <div class="text-center mt-3">
+            <p><span style="color:#bbb;">New student?</span> <a href="{{ url_for('signup') }}" class="link">Student Register</a></p>
+        </div>
+    </div>
+</div>
+<div class="footer">
+    <p>🔒 Google reCAPTCHA protected</p>
+    <p>© 2025 Student Portal</p>
+</div>
+{% endblock %}

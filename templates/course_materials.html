@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course_name }} - Study Materials{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* rely on base gradient and laptop-first container */
+    /* use base container for consistent sizing and spacing */
+    .header {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .header h1 {
+        color: #333;
+        font-size: 2.2rem;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    .header .course-code {
+        color: #667eea;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        color: #000;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    .back-btn:hover {
+        background: #f0f0f0;
+        transform: translateX(-4px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+    }
+    .controls {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .sort-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .sort-section label {
+        font-weight: 600;
+        color: #333;
+    }
+    .sort-section select {
+        padding: 8px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        color: #333;
+        font-size: 14px;
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+    }
+    .sort-section select:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    .materials-count {
+        color: #666;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    .materials-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .material-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    .material-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .material-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        gap: 15px;
+    }
+    .material-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 6px;
+    }
+    .material-date {
+        font-size: 13px;
+        color: #666;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .material-description {
+        color: #555;
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 16px;
+    }
+    .material-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding-top: 16px;
+        border-top: 1px solid #e0e0e0;
+    }
+    .uploader-info {
+        color: #666;
+        font-size: 13px;
+    }
+    .download-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #667eea;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .download-btn:hover {
+        background: #5a6fd8;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .no-materials {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 16px;
+        padding: 60px 30px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        color: #666;
+        font-size: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <div class="course-code">{{ course_code }}</div>
+        <h1>{{ course_name }}</h1>
+        <p style="color: #666; margin: 0;">Course materials and resources</p>
+    </div>
+
+    <div class="controls">
+        <div class="sort-section">
+            <label for="sortSelect">Sort by:</label>
+            <select id="sortSelect" onchange="changeSorting()">
+                <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Newest First</option>
+                <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Oldest First</option>
+                <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+            </select>
+        </div>
+        <div class="materials-count">{{ materials|length }} material(s) available</div>
+    </div>
+
+    {% if materials %}
+    <div class="materials-grid">
+        {% for material in materials %}
+        <div class="material-card">
+            <div class="material-header">
+                <div>
+                    <div class="material-title">{{ material['title'] }}</div>
+                    <div class="material-date">📅 {{ material['created_at'][:16] }}</div>
+                </div>
+                {% if material['file_path'] %}
+                <a href="{{ material['file_path'] }}" target="_blank" class="download-btn">
+                    📥 View/Download
+                </a>
+                {% endif %}
+            </div>
+            
+            {% if material['description'] %}
+            <div class="material-description">{{ material['description'] }}</div>
+            {% endif %}
+            
+            <div class="material-meta">
+                <div class="uploader-info">
+                    👤 Uploaded by {{ material['uploader_name'] or 'Admin' }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-materials">
+        <h3 style="color: #333; margin-bottom: 12px;">📚 No Materials Yet</h3>
+        <p>Materials for this course will appear here once uploaded by the administrator.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function changeSorting() {
+        const sortBy = document.getElementById('sortSelect').value;
+        const currentUrl = new URL(window.location);
+        currentUrl.searchParams.set('sort', sortBy);
+        window.location.href = currentUrl.toString();
+    }
+</script>
+{% endblock %}

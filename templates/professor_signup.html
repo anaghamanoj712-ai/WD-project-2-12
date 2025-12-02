@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Professor Register - Student Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1>👨‍🏫 Professor Registration</h1>
+        <p>Create a professor account and set your consultation hours</p>
+    </div>
+    <div class="card-body">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="{{ url_for('professor_signup') }}">
+            <div class="form-group">
+                <label for="full_name">Full Name</label>
+                <input type="text" id="full_name" name="full_name" required value="{{ full_name or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="employee_id">Employee/Prof ID</label>
+                <input type="text" id="employee_id" name="employee_id" required value="{{ employee_id or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="department">Department</label>
+                <input type="text" id="department" name="department" required value="{{ department or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="designation">Designation</label>
+                <input type="text" id="designation" name="designation" required value="{{ designation or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required value="{{ email or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <div class="captcha-container">
+                <div class="g-recaptcha" data-sitekey="{{ site_key }}" data-theme="dark"></div>
+            </div>
+            <button type="submit" class="btn">Register as Professor</button>
+        </form>
+        <div class="text-center mt-3">
+            <p>Already registered? <a href="{{ url_for('login') }}" class="link">Login here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

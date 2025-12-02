@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+
+{% block title %}Venue Booking - Student Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* rely on base container size for consistent layout */
+    .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+    .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    .main-grid {
+        display: grid;
+        grid-template-columns: 3fr 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+
+    /* tablet: stack vertically */
+    @media (max-width: 768px) {
+        .container {
+            max-width: 100%;
+            margin: 20px auto;
+            padding: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+        }
+
+        .main-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .form-card, .side-panel {
+            padding: 20px;
+        }
+
+        .tabs {
+            gap: 5px;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+    }
+
+    /* mobile: single column, small fonts */
+    @media (max-width: 480px) {
+        .container {
+            max-width: 100%;
+            margin: 10px auto;
+            padding: 8px;
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+        }
+
+        .header p {
+            font-size: 12px;
+        }
+
+        .form-card, .side-panel {
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .tabs {
+            gap: 0;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        input, select, textarea {
+            font-size: 14px;
+        }
+
+        .btn {
+            font-size: 14px;
+            padding: 10px;
+        }
+    }
+    .form-card, .side-panel {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    .tab {
+        padding: 12px 24px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        color: #666;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .tab:hover {
+        color: #667eea;
+    }
+    .tab.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+    }
+    .tab-content {
+        display: none;
+    }
+    .tab-content.active {
+        display: block;
+    }
+    .form-title {
+        font-size: 1.8rem;
+        color: #333;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    label {
+        display: block;
+        color: #555;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+        box-sizing: border-box;
+    }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    .time-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    .submit-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+    .side-panel h3 {
+        font-size: 1.3rem;
+        color: #333;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    .status-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    .status-label {
+        font-weight: 500;
+        color: #555;
+    }
+    .status-count {
+        font-size: 1.2rem;
+        font-weight: 700;
+    }
+    .status-count.approved { color: #10b981; }
+    .status-count.pending { color: #f59e0b; }
+    .status-count.denied { color: #ef4444; }
+    .history-list {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    .history-item {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 16px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .history-item:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .history-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .history-venue {
+        font-weight: 600;
+        color: #333;
+        font-size: 1.1rem;
+    }
+    .badge {
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .badge.approved {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .badge.pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .badge.denied {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .history-meta {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+    .history-meta strong {
+        color: #333;
+    }
+    .no-history {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+        font-size: 16px;
+    }
+    #classroomOptions {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>📍 Venue Booking</h1>
+    </div>
+
+    <div class="main-grid">
+        <div class="form-card">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('apply')">Apply for Booking</button>
+                <button class="tab" onclick="switchTab('history')">View Booking History</button>
+            </div>
+
+            <div id="apply-tab" class="tab-content active">
+                <h2 class="form-title">Book a Venue</h2>
+                <form method="POST" action="{{ url_for('venue_booking') }}">
+                    <div class="form-group">
+                        <label for="venue_type">Venue Type *</label>
+                        <select id="venue_type" name="venue_type" required>
+                            <option value="">-- Select Venue --</option>
+                            {% for vt in venue_types %}
+                            <option value="{{ vt }}">{{ vt }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div id="classroomOptions">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="block">Block</label>
+                                <select id="block" name="block">
+                                    <option value="">-- Select Block --</option>
+                                    {% for b in blocks %}
+                                    <option value="{{ b }}">{{ b }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="room_number">Room Number</label>
+                                <select id="room_number" name="room_number">
+                                    <option value="">-- Select Room --</option>
+                                    {% for rn in room_numbers %}
+                                    <option value="{{ rn }}">{{ rn }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="purpose">Purpose *</label>
+                        <textarea id="purpose" name="purpose" rows="3" required placeholder="Describe the purpose of booking"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date">Date *</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+
+                    <div class="time-group">
+                        <div class="form-group">
+                            <label for="start_time">Start Time *</label>
+                            <input type="time" id="start_time" name="start_time" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="end_time">End Time *</label>
+                            <input type="time" id="end_time" name="end_time" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Submit Booking Request</button>
+                </form>
+            </div>
+
+            <div id="history-tab" class="tab-content">
+                <h2 class="form-title">Your Booking History</h2>
+                {% if bookings %}
+                <div class="history-list">
+                    {% for booking in bookings %}
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-venue">{{ booking['venue_type'] }}{% if booking['block'] %} - Block {{ booking['block'] }}, Room {{ booking['room_number'] }}{% endif %}</span>
+                            <span class="badge {{ booking['status'] }}">{{ booking['status'] }}</span>
+                        </div>
+                        <div class="history-meta">
+                            <strong>Date:</strong> {{ booking['date'] }}<br>
+                            <strong>Time:</strong> {{ booking['start_time'] }} - {{ booking['end_time'] }}<br>
+                            <strong>Purpose:</strong> {{ booking['purpose'] }}<br>
+                            {% if booking['approver_notes'] %}
+                            <strong>Admin Notes:</strong> {{ booking['approver_notes'] }}<br>
+                            {% endif %}
+                            <strong>Requested:</strong> {{ booking['created_at'][:16] }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="no-history">
+                    <p>📋 No booking history yet. Submit your first booking request!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="side-panel">
+            <h3>📊 Booking Status</h3>
+            <div class="status-summary">
+                <div class="status-item">
+                    <span class="status-label">Approved</span>
+                    <span class="status-count approved">{{ bookings | selectattr('status', 'equalto', 'approved') | list | length }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Pending</span>
+                    <span class="status-count pending">{{ bookings | selectattr('status', 'equalto', 'pending') | list | length }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Denied</span>
+                    <span class="status-count denied">{{ bookings | selectattr('status', 'equalto', 'denied') | list | length }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateVisibility() {
+        const venueType = document.getElementById('venue_type').value;
+        const classroomOptions = document.getElementById('classroomOptions');
+        if (venueType === 'Classroom') {
+            classroomOptions.style.display = 'block';
+        } else {
+            classroomOptions.style.display = 'none';
+            document.getElementById('block').value = '';
+            document.getElementById('room_number').value = '';
+        }
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+
+        if (tabName === 'apply') {
+            document.querySelector('.tab:nth-child(1)').classList.add('active');
+            document.getElementById('apply-tab').classList.add('active');
+        } else {
+            document.querySelector('.tab:nth-child(2)').classList.add('active');
+            document.getElementById('history-tab').classList.add('active');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+        document.getElementById('venue_type').addEventListener('change', updateVisibility);
+        updateVisibility();
+    });
+</script>
+{% endblock %}

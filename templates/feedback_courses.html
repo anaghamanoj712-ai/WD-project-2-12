@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback - Courses{% endblock %}
+
+{% block extra_css %}
+<style>
+.course-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:16px; }
+.course-card { background:#111;border:1px solid #222;padding:16px;border-radius:10px;text-align:left;color:#fff; display:flex; flex-direction:column; justify-content:space-between; }
+.course-card .card-body { display:block; }
+.course-card h4 { margin:0 0 8px 0; }
+.course-card p { margin:0;color:#ccc;font-size:13px }
+.course-card .meta { margin-top:8px; display:flex; flex-direction:column; gap:6px; }
+.course-card .meta .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.course-card .meta a.email { color:#fff; opacity:0.9; text-decoration:underline; margin-right:6px; }
+.course-card .cta { text-align:right; margin-top:12px; }
+.course-card .btn-feedback { background: linear-gradient(135deg,#1cffaa,#26d0d9); color:#001; padding:8px 12px; border-radius:8px; border:none; font-weight:700; cursor:pointer; text-decoration:none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 style="color:#fff;margin-bottom:12px;">Select a course to provide feedback</h2>
+
+    <div class="course-grid">
+        {% for c in courses %}
+        <div class="course-card">
+            {% if c is mapping %}
+            <div class="card-body">
+                <h4>{{ c['Name of the Courses'] }}</h4>
+                <p><strong>Code:</strong> {{ c['Code'] }} &nbsp; <strong>Credits:</strong> {{ c['Credit'] }} &nbsp; <strong>Type:</strong> {{ c['Core/Elective'] }}</p>
+                <div class="meta">
+                    <div class="row"><strong>Instructor:</strong>
+                        {% if c['Faculty Email ID'] %}
+                            <a class="email" href="mailto:{{ c['Faculty Email ID'] }}">{{ c['Faculty Email ID'] }}</a>
+                        {% endif %}
+                        <span style="color:#ccc">— {{ c['Name of Course Instructor'] }}</span>
+                    </div>
+                    <div class="row"><strong>Academic Associate:</strong>
+                        {% if c['Email ID of Academic Associate'] %}
+                            <a class="email" href="mailto:{{ c['Email ID of Academic Associate'] }}">{{ c['Email ID of Academic Associate'] }}</a>
+                        {% endif %}
+                        <span style="color:#ccc">— {{ c['Name of Academic Associate'] or 'Not Applicable' }}</span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card-body">
+                <h4>{{ c }}</h4>
+            </div>
+            {% endif %}
+            <div class="cta">
+                <a class="btn-feedback" href="{% if c is mapping %}{{ url_for('feedback_course', course=c['Name of the Courses']) }}{% else %}{{ url_for('feedback_course', course=c) }}{% endif %}">Provide feedback</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="margin-top:20px;">
+        <!-- per-page back removed; global back in base.html remains -->
+    </div>
+    </div>
+{% endblock %}

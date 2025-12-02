@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Student Appointments - Professor{% endblock %}
+{% block extra_css %}
+<style>
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.back-btn:hover {
+    background: #f0f0f0;
+    transform: translateX(-4px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+}
+
+.prof-apps-header {
+    background: linear-gradient(90deg,#2a2039 35%,#13131e 100%);
+    border-radius:16px; margin-bottom:25px; padding:28px 26px 15px 30px;
+    box-shadow: 0 2px 23px #2426610a;
+}
+.prof-approve-table {
+    width:100%; border-collapse: collapse; background: #19192e; border-radius: 13px; box-shadow: 0 2px 12px #173d4b2c; overflow: hidden;
+}
+.prof-approve-table th, .prof-approve-table td {
+    padding: 13px 8px; font-size:0.95rem;
+    color: #fff; border: 1px solid #29275b; text-align:center;
+}
+.prof-approve-table th {
+    background: linear-gradient(92deg,#372757 30%,#434373 100%);
+    font-weight: 800; font-size: 1.08rem;
+}
+.prof-approve-table tr:nth-child(even) { background:#191c2f;}
+.status-pill {
+    font-weight:600; border-radius:12px; padding:6px 12px; display:inline-block;
+    font-size:0.95em; letter-spacing:0.5px;
+}
+.status-pending { background:#ffe79922; color:#ffe799; }
+.status-accepted { background:#a8fea4; color:#18662b; }
+.status-declined { background:#fff2; color:#ff4c70; }
+.profact-btn, .profdecl-btn {
+    display:inline-block; padding: 5px 14px; border-radius:6px; font-weight:700; margin:2px 2px;
+}
+.profact-btn       { background:#20ec90;background:linear-gradient(97deg,#23ffb9 20%,#14dafb 90%); color:#183b37; }
+.profdecl-btn      { background:#ff6961;background:linear-gradient(92deg,#ff7d92 42%,#e0324b 99%); color:#fff; }
+.profact-btn:hover { background:#11c29d; color:#fff;}
+.profdecl-btn:hover{ background:#810020; color:#fff;}
+</style>
+{% endblock %}
+{% block content %}
+<div class="prof-apps-header">
+    <h1 style="font-weight:900; color:#e3a2ff;font-size:2rem; margin-bottom:7px;">📅 Student Appointment Requests</h1>
+    <p style="color:#aab;">Approve or decline meeting requests. All actions will update for the student in real-time.</p>
+</div>
+<table class="prof-approve-table">
+    <tr>
+        <th>Student</th><th>Email</th><th>Roll No</th>
+        <th>Date</th><th>Slot</th><th>Room</th>
+        <th>Purpose</th><th>Status</th><th>Action</th>
+    </tr>
+    {% for appt in appointments %}
+    <tr>
+        <td>{{ appt['student_name'] }}</td>
+        <td>{{ appt['student_email'] }}</td>
+        <td>{{ appt['student_id'] }}</td>
+        <td>{{ appt['appointment_date'] }}</td>
+        <td>{{ appt['day_of_week'] }}, {{ appt['start_time'] }}–{{ appt['end_time'] }}</td>
+        <td>{{ appt['room_number'] or '—' }}</td>
+        <td>{{ appt['purpose'] }}</td>
+        <td>
+            {% if appt['status'] == "pending" %}
+                <span class="status-pill status-pending">Pending</span>
+            {% elif appt['status'] == "accepted" %}
+                <span class="status-pill status-accepted">Accepted</span>
+            {% else %}
+                <span class="status-pill status-declined">Declined</span>
+            {% endif %}
+        </td>
+        <td>
+            {% if appt['status'] == "pending" %}
+            <a href="{{ url_for('update_appointment', appointment_id=appt['id'], action='accept') }}" class="profact-btn">Accept</a>
+            <a href="{{ url_for('update_appointment', appointment_id=appt['id'], action='decline') }}" class="profdecl-btn">Decline</a>
+            {% else %}
+            <span style="font-size: 1.2em; color:#888;">—</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

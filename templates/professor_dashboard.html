@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Professor Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* align professor dashboard visuals with student/admin service cards */
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 768px) {
+        .services-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+    }
+
+    .service-card {
+        background: linear-gradient(135deg, #16181c 0%, #282b33 100%);
+        border-radius: 12px;
+        padding: 22px;
+        box-shadow: 0 6px 40px rgba(40,50,80,0.18), 0 2px 12px rgba(70,90,135,0.06);
+        border: 1px solid rgba(255,255,255,0.04);
+        transition: all 0.28s;
+        color: #fff;
+        display: block;
+        text-decoration: none;
+        min-height: 190px;
+    }
+
+    .service-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 40px rgba(10,36,100,0.14), 0 6px 26px rgba(140,180,235,0.08);
+        border-color: #393d4b;
+    }
+
+    .service-card .icon { font-size: 2.4rem; margin-bottom: 12px; }
+    .service-card h2 { font-size: 1.2rem; margin-bottom: 8px; color: #fff; }
+    .service-card p { color: #aab2ce; margin-bottom: 8px; }
+
+    .card-kpi { font-size: 1.9rem; font-weight: 800; color: #58e273; margin-top: 10px; }
+
+    @media (max-width:700px) { .services-grid { grid-template-columns: 1fr; } .service-card { padding: 18px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header" style="background:linear-gradient(90deg,#24253a 30%,#181822 100%); box-shadow:0 2px 18px #24266122;">
+    <h1 style="font-size:2.2rem; font-weight:900; color:#fff; letter-spacing:0.5px;">
+        👨‍🏫 Welcome Prof. {{ user.full_name.split(' ')[0] }}
+    </h1>
+    <!-- simple logout button below the name -->
+    <div style="margin-top:10px;">
+        <a href="{{ url_for('logout') }}" class="btn" style="width:auto; padding:8px 14px; background:#ff6b6b; color:#fff; border-radius:8px; display:inline-block;">Logout</a>
+    </div>
+    <p style="color:#aab;">Your admin panel: manage student appointments, chamber hours, and more.</p>
+</div>
+<br/>
+<br/>
+<div class="services-grid">
+    <a href="{{ url_for('chamber_hours') }}" class="service-card" style="text-decoration:none;">
+        <span class="icon">🕑</span>
+        <h2>Your Chamber Hours</h2>
+        <p>Edit and publish your available times for student meetings.<br></p>
+        <div class="card-kpi">{{ chamber_hours_count }}</div>
+        <span style="font-size:0.97rem; color:#8cffdb;">slots listed</span>
+    </a>
+    <br/>
+<br/>
+    <a href="{{ url_for('professor_appointments') }}" class="service-card" style="text-decoration:none;">
+        <span class="icon">📅</span>
+        <h2>Appointment Requests</h2>
+        <p>Review, accept or decline new and upcoming student consultations.</p>
+        <div class="card-kpi">{{ pending_appointments }}</div>
+        <span style="font-size:0.97rem; color:#ffe799;">pending</span>
+    </a>
+    <br/>
+<br/>
+    <a href="{{ url_for('professor_upload_material') }}" class="service-card" style="text-decoration:none;">
+        <span class="icon">📚</span>
+        <h2>Study Materials</h2>
+        <p>Upload and manage course materials for your students.</p>
+        <div class="card-kpi">✍️</div>
+        <span style="font-size:0.97rem; color:#1cffaa;">manage materials</span>
+    </a>
+    <br/>
+<br/>
+    <div class="service-card" style="text-decoration:none;filter: grayscale(.4) brightness(.9);">
+        <span class="icon">🛡️</span>
+        <h2>Security & Profile</h2>
+        <p>Change your password, update your profile, or set up 2FA (coming soon).</p>
+        <div class="card-kpi" style="color:#8bfff3;text-shadow:0 2px 15px #71f3eea0;">★</div>
+        <span style="font-size:0.97rem; color:#bbcaee;">More features soon</span>
+    </div>
+</div>
+<br/>
+<br/> 
+<div class="footer" style="margin-top:38px;text-align:center; color:#567;">© 2025 Faculty Portal</div>
+{% endblock %}

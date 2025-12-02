@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Book Appointment{% endblock %}
+{% block extra_css %}
+<style>
+select, input, textarea {
+  margin-bottom: 15px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 2px solid #1cffaa;
+  border-radius: 8px;
+  color: #00ffff;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+select::placeholder, input::placeholder, textarea::placeholder {
+  color: #00ffcc;
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%231cffaa' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 40px;
+}
+
+select:focus, input:focus, textarea:focus {
+  outline: none;
+  border-color: #1cffaa;
+  background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
+  box-shadow: 0 0 15px rgba(28, 255, 170, 0.4), inset 0 0 10px rgba(28, 255, 170, 0.1);
+  color: #00ffff;
+}
+
+#prof-hours-table {
+  color: #fff;
+  margin-top: 12px;
+  background: #0f0f0f;
+  border-radius: 10px;
+  width: 100%;
+}
+#prof-hours-table td, #prof-hours-table th {
+  padding: 6px 10px;
+  text-align: center;
+  border: 1px solid #222;
+}
+
+/* mobile responsive */
+@media (max-width: 768px) {
+  select, input, textarea {
+    margin-bottom: 12px;
+    font-size: 16px; /* prevent zoom on iOS */
+  }
+
+  #prof-hours-table td, #prof-hours-table th {
+    padding: 4px 6px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  select, input, textarea {
+    margin-bottom: 10px;
+    font-size: 14px;
+    width: 100%;
+  }
+
+  #prof-hours-table {
+    font-size: 10px;
+  }
+
+  #prof-hours-table td, #prof-hours-table th {
+    padding: 3px 4px;
+    font-size: 9px;
+  }
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="dashboard-header">
+    <h1>Book a Meeting</h1>
+    <p>Select a professor, slot, and tell them the reason for your visit.</p>
+</div>
+<form method="POST" id="bookingForm">
+    <label>Professor:</label>
+    <select name="professor_id" id="profSelect" required>
+        <option value="">Choose Professor…</option>
+        {% for prof in professors %}
+        <option value="{{ prof['id'] }}">{{ prof['full_name'] }} ({{ prof['department'] }}, {{ prof['designation'] }})</option>
+        {% endfor %}
+    </select>
+    <div id="hour-container"></div>
+    <label>Appointment Date:</label>
+    <input type="date" name="appointment_date" required>
+    <label>Purpose:</label>
+    <textarea name="purpose" required placeholder="What is the agenda for meeting?" rows="3"></textarea>
+    <button type="submit" class="btn">Book Appointment</button>
+</form>
+<script>
+document.getElementById('profSelect').addEventListener('change', function() {
+    let profID = this.value;
+    document.getElementById("hour-container").innerHTML = "";
+    if (!profID) return;
+    fetch(`/api/professor-hours/${profID}`).then(res => res.json()).then(hours => {
+        let html = '<label>Time Slot:</label><select name="chamber_hour_id" required>';
+        for (let hr of hours) {
+            html += `<option value="${hr.id}">${hr.day_of_week}, ${hr.start_time}–${hr.end_time} [${hr.room_number || "—"}]</option>`;
+        }
+        html += '</select>';
+        document.getElementById("hour-container").innerHTML = html;
+    });
+});
+</script>
+{% endblock %}

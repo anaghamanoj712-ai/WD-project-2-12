@@ -1,0 +1,29 @@
+# Environments
+.env
+.venv
+venv/
+**/venv
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node
+
+# VSCode
+.vscode/
+
+# Database
+users.db
+*.sqlite3
+*.db
+!users.db.example
+
+# CSV backups
+*.bak
+
+# Misc
+.DS_Store
+*.swo
+.swp

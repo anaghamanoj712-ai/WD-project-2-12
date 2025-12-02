@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}My Appointments{% endblock %}
+{% block content %}
+<div class="dashboard-header">
+    <h1>My Bookings</h1>
+    <p>All your professor appointments and statuses</p>
+</div>
+<table class="chamber-table">
+    <tr>
+        <th>Professor</th><th>Date</th><th>Slot</th><th>Room</th><th>Purpose</th><th>Status</th>
+    </tr>
+    {% for appt in appointments %}
+    <tr>
+        <td>{{ appt['professor_name'] }}</td>
+        <td>{{ appt['appointment_date'] }}</td>
+        <td>{{ appt['day_of_week'] }}, {{ appt['start_time'] }}–{{ appt['end_time'] }}</td>
+        <td>{{ appt['room_number'] or '—' }}</td>
+        <td>{{ appt['purpose'] }}</td>
+        <td>
+            {% if appt['status'] == "pending" %}
+            <span style="color:#bfa912;">Pending</span>
+            {% elif appt['status'] == "accepted" %}
+            <span style="color:#14c900;">Accepted</span>
+            {% else %}
+            <span style="color:#ff4141;">Declined</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

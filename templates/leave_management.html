@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Application{% endblock %}
+
+{% block extra_css %}
+<style>
+/* match booking form inputs so date fields show the same styled control */
+select, input, textarea {
+    margin-bottom: 15px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 2px solid #1cffaa;
+    border-radius: 8px;
+    color: #00ffff;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+select::placeholder, input::placeholder, textarea::placeholder {
+    color: #00ffcc;
+}
+
+select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%231cffaa' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+}
+
+select:focus, input:focus, textarea:focus {
+    outline: none;
+    border-color: #1cffaa;
+    background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
+    box-shadow: 0 0 15px rgba(28, 255, 170, 0.4), inset 0 0 10px rgba(28, 255, 170, 0.1);
+    color: #00ffff;
+}
+
+    .back-btn {
+        display: inline-block;
+        margin-bottom: 16px;
+        padding: 8px 12px;
+        background: #2a2a2a;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        border: 1px solid #444;
+    }
+    .back-btn:hover { background: #333; transform: translateY(-1px); }
+    .leave-management-container {
+        display: flex;
+        gap: 20px;
+    }
+
+    /* tablet and mobile: stack vertically */
+    @media (max-width: 768px) {
+        .leave-management-container {
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .leave-management-form {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .back-btn {
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+    }
+
+    /* mobile: small layouts */
+    @media (max-width: 480px) {
+        .leave-management-container {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .leave-management-form {
+            padding: 10px;
+            margin-top: 5px;
+        }
+
+        .leave-management-form input,
+        .leave-management-form select,
+        .leave-management-form textarea {
+            font-size: 14px;
+            padding: 8px;
+        }
+
+        .back-btn {
+            padding: 5px 8px;
+            font-size: 11px;
+        }
+    }
+
+    .leave-management-form {
+        margin-top: 10px;
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #333;
+        flex: 2;
+    }
+
+    .leave-management-form label {
+        color: #fff;
+        font-weight: 500;
+        margin-top: 10px;
+        display: block;
+    }
+
+    .leave-management-form input,
+    .leave-management-form select,
+    .leave-management-form textarea {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #444;
+        border-radius: 4px;
+        background: #1a1a1a;
+        color: #fff;
+    }
+
+    .leave-management-form button {
+        margin-top: 15px;
+        background: #fff;
+        color: #000;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .leave-management-form button:hover {
+        background: #f0f0f0;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(255, 255, 255, 0.2);
+    }
+
+    .leave-status-panel {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #333;
+        flex: 1;
+    }
+
+    .leave-status-panel h4 {
+        color: #fff;
+        margin-bottom: 10px;
+    }
+
+    .leave-status-panel ul {
+        list-style-type: none;
+        padding: 0;
+        color: #ccc;
+    }
+
+    .leave-status-panel ul li {
+        margin: 8px 0;
+    }
+    .tabs { display:flex; gap:8px; margin-bottom:12px; }
+    .tab { padding:10px 16px; background:#e9ecef; border-radius:8px; cursor:pointer; color:#222; font-weight:600 }
+    .tab.active { background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.08) }
+    .history-list { display:flex; flex-direction:column; gap:12px; }
+    .history-item { background:#fff; color:#111; border-radius:8px; padding:12px; border:1px solid #e6e6e6 }
+    .badge { padding:6px 10px; border-radius:14px; font-weight:700; font-size:13px }
+    .badge.approved { background:#e6ffef; color:#087f4b; border:1px solid #b7f0cf }
+    .badge.pending { background:#fff7e6; color:#aa6b00; border:1px solid #ffecb8 }
+    .badge.disapproved { background:#ffecec; color:#a90000; border:1px solid #f1b8b8 }
+    .history-meta { display:flex; justify-content:space-between; gap:8px; align-items:center }
+    .history-reason { color:#333; margin-top:8px }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="leave-management-container">
+    <div class="leave-management-form">
+        <div class="tabs">
+            <div class="tab active" id="tab-apply">Apply for Leave</div>
+            <div class="tab" id="tab-history">View Leave History</div>
+        </div>
+
+        <div id="panel-apply">
+            <form method="POST" action="{{ url_for('apply_leave') }}">
+                <label for="leaveType">Leave Type:</label>
+                <select id="leaveType" name="leaveType" required>
+                    <option value="">Select leave type</option>
+                    <option value="Sick Leave">Sick Leave</option>
+                    <option value="Personal Leave">Personal Leave</option>
+                    <option value="Study Leave">Study Leave</option>
+                    <option value="Vacation">Vacation</option>
+                </select>
+
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate" name="startDate" required>
+
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate" name="endDate" required>
+
+                <!-- Contact number removed per request -->
+
+                <label for="reason">Reason for Leave:</label>
+                <textarea id="reason" name="reason" required></textarea>
+
+                <button type="submit">Submit Leave Request</button>
+            </form>
+        </div>
+
+        <div id="panel-history" style="display:none;margin-top:8px;">
+            <div class="history-list">
+                {% if history %}
+                    {% for h in history %}
+                    <div class="history-item">
+                        <div class="history-meta">
+                            <div>
+                                <strong>{{ h.leave_type }}</strong>
+                                <div style="font-size:13px;color:#666">{{ h.start_date }} - {{ h.end_date }}</div>
+                            </div>
+                            <div>
+                                {% if h.status == 'approved' %}
+                                    <span class="badge approved">Approved</span>
+                                {% elif h.status == 'disapproved' %}
+                                    <span class="badge disapproved">Disapproved</span>
+                                {% else %}
+                                    <span class="badge pending">Pending</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="history-reason">Reason: {{ h.reason }}</div>
+                        {% if h.approver_notes %}
+                        <div style="margin-top:8px;color:#444">Approver Notes: {{ h.approver_notes }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="color:#ccc">No leave history found.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="leave-status-panel">
+        <h4>Leave Status</h4>
+        <ul>
+            <li>Approved: {{ counts.approved if counts else 0 }}</li>
+            <li>Pending: {{ counts.pending if counts else 0 }}</li>
+            <li>Disapproved: {{ counts.disapproved if counts else 0 }}</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Date validation + Simple tab toggling
+    (function(){
+        // Tab toggling
+        var tabApply = document.getElementById('tab-apply');
+        var tabHistory = document.getElementById('tab-history');
+        tabApply.addEventListener('click', function(){
+            document.getElementById('panel-apply').style.display = '';
+            document.getElementById('panel-history').style.display = 'none';
+            this.classList.add('active');
+            tabHistory.classList.remove('active');
+        });
+        tabHistory.addEventListener('click', function(){
+            document.getElementById('panel-apply').style.display = 'none';
+            document.getElementById('panel-history').style.display = '';
+            this.classList.add('active');
+            tabApply.classList.remove('active');
+        });
+
+        // Date inputs & validation
+        var startInput = document.getElementById('startDate');
+        var endInput = document.getElementById('endDate');
+        var form = document.querySelector('form[action="{{ url_for('apply_leave') }}"]');
+
+        // Helper to format today's date as YYYY-MM-DD
+        function todayISO(){
+            var d = new Date();
+            var mm = String(d.getMonth()+1).padStart(2,'0');
+            var dd = String(d.getDate()).padStart(2,'0');
+            return d.getFullYear() + '-' + mm + '-' + dd;
+        }
+
+        // Set minimum for start and end date to today
+        var today = todayISO();
+        if(startInput) startInput.setAttribute('min', today);
+        if(endInput) endInput.setAttribute('min', today);
+
+        // When start date changes, ensure end's min is start date
+        if(startInput && endInput){
+            startInput.addEventListener('input', function(){
+                if(this.value){
+                    endInput.setAttribute('min', this.value);
+                    // If end is before start, clear it
+                    if(endInput.value && endInput.value < this.value){
+                        endInput.value = this.value;
+                    }
+                } else {
+                    endInput.setAttribute('min', today);
+                }
+            });
+        }
+
+        // Final client-side validation on submit
+        function validYearPart(dateStr){
+            if(!dateStr) return false;
+            var parts = dateStr.split('-');
+            return parts.length === 3 && parts[0].length === 4 && /^\d{4}$/.test(parts[0]);
+        }
+
+        if(form){
+            form.addEventListener('submit', function(e){
+                var s = startInput ? startInput.value : '';
+                var en = endInput ? endInput.value : '';
+                var now = todayISO();
+
+                if(!s || !en){
+                    e.preventDefault();
+                    alert('Please select both start and end dates.');
+                    return false;
+                }
+
+                // year-length checks
+                if(!validYearPart(s) || !validYearPart(en)){
+                    e.preventDefault();
+                    alert('Year must be exactly 4 digits (YYYY) for both start and end dates.');
+                    return false;
+                }
+
+                if(s < now){
+                    e.preventDefault();
+                    alert('Start date cannot be before today.');
+                    return false;
+                }
+                if(en < s){
+                    e.preventDefault();
+                    alert('End date cannot be before the start date.');
+                    return false;
+                }
+            });
+        }
+    })();
+</script>
+{% endblock %}

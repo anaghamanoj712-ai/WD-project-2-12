@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Announcements{% endblock %}
+
+{% block extra_css %}
+<style>
+/* container uses base layout (login page) */
+.announce-form { background:#0f0f12; border:1px solid #222; padding:16px; border-radius:8px; color:#fff; }
+.announce-list { margin-top:16px; display:grid; gap:12px }
+.announce-item { padding:12px; background:#141418; border-radius:8px; border:1px solid #232327; color:#eaf; }
+.announce-item .meta { color:#9aa; font-size:12px; text-align:right }
+.btn-primary { background:linear-gradient(90deg,#1cffaa,#0078ff); color:#001; padding:8px 12px; border-radius:8px; border:none; font-weight:700 }
+.btn-danger { background:#ff6b6b; color:#fff; padding:8px 12px; border-radius:8px; border:none }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header" style="margin-bottom:10px;">
+    <h1>Announcements</h1>
+    <p style="color:#9aa;">Publish announcements for professors and students from this admin panel.</p>
+</div>
+
+<div class="container">
+    <div class="announce-form">
+        <form action="{{ url_for('admin_post_announcement') }}" method="POST" style="display:flex; flex-direction:column; gap:8px;">
+            <input name="title" placeholder="Announcement title" style="padding:10px; border-radius:6px; border:1px solid #333; background:#0b0b0b; color:#fff" required>
+            <textarea name="body" rows="5" placeholder="Write your announcement here..." style="padding:10px; border-radius:6px; border:1px solid #333; background:#0b0b0b; color:#fff" required></textarea>
+                <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <!-- per-page back removed; use global back button -->
+                <button class="btn-primary" type="submit">Publish announcement</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="announce-list">
+        {% for a in announcements %}
+        <div class="announce-item">
+            <div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start;">
+                <div style="flex:1;">
+                    <strong style="font-size:15px">{{ a.title }}</strong>
+                    <div style="color:#9aa; margin-top:6px">{{ a.body[:260] }}{% if a.body|length > 260 %}...{% endif %}</div>
+                </div>
+                <div style="min-width:160px; text-align:right;">
+                    <div class="meta">{{ a.created_at }}</div>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; margin-top:10px; gap:8px;">
+                <form method="POST" action="{{ url_for('admin_delete_announcement', aid=a.id) }}" onsubmit="return confirm('Delete this announcement? This action cannot be undone.');">
+                    <button type="submit" class="btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div style="color:#9aa; padding:12px; background:#0d0d0e; border-radius:8px;">No announcements yet</div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

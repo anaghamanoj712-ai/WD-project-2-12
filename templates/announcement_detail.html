@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Announcement - {{ announcement['title'] }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.announcement-card {
+    max-width: 900px;
+    margin: 28px auto;
+    background: linear-gradient(180deg,#121216,#1b1b22);
+    border: 1px solid #333;
+    padding: 24px;
+    border-radius: 10px;
+    color: #fff;
+}
+.announcement-card h1 { font-size: 20px; margin-bottom:6px; }
+.announcement-card .meta { color:#9aa; font-size:13px; margin-bottom:12px; }
+.announcement-card .body { color:#dfe; font-size:15px; white-space:pre-wrap; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="announcement-card">
+        <h1>{{ announcement['title'] }}</h1>
+        <div class="meta">Published on: {{ announcement['created_at'] }}</div>
+        <div class="body">{{ announcement['body'] }}</div>
+    </div>
+</div>
+{% endblock %}

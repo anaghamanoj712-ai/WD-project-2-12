@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Feedback Responses{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* rely on base background/layout - keep small top spacing via container */
+    .feedback-container { margin-top: 6px; }
+    
+    .feedback-container {
+        max-width: 95%;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .header-section {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    .header-section h1 {
+        color: #fff;
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+    
+    .header-section p {
+        color: #999;
+        font-size: 16px;
+    }
+    
+    .table-wrapper {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 20px;
+        overflow-x: auto;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+    
+    .feedback-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    
+    .feedback-table thead tr:first-child th {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 8px;
+        text-align: center;
+        font-weight: 600;
+        border: 1px solid #555;
+    }
+    
+    .feedback-table thead tr:nth-child(2) th {
+        background: #2a2a2a;
+        color: #ddd;
+        padding: 8px 6px;
+        text-align: center;
+        font-weight: 500;
+        font-size: 11px;
+        border: 1px solid #444;
+    }
+    
+    .feedback-table tbody tr {
+        border-bottom: 1px solid #2a2a2a;
+    }
+    
+    .feedback-table tbody tr:hover {
+        background: #222;
+    }
+    
+    .feedback-table td {
+        padding: 10px 8px;
+        vertical-align: middle;
+        color: #fff;
+        border: 1px solid #333;
+        text-align: center;
+    }
+    
+    .feedback-table td:first-child {
+        text-align: left;
+        font-weight: 600;
+        background: #1a1a1a;
+        position: sticky;
+        left: 0;
+        z-index: 1;
+    }
+    
+    .student-name {
+        color: #fff;
+        font-weight: 600;
+    }
+    
+    .student-email {
+        color: #999;
+        font-size: 11px;
+    }
+    
+    .rating-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 700;
+        min-width: 30px;
+    }
+    
+    .rating-5 { background: #d4edda; color: #155724; }
+    .rating-4 { background: #d1ecf1; color: #0c5460; }
+    .rating-3 { background: #fff3cd; color: #856404; }
+    .rating-2 { background: #f8d7da; color: #721c24; }
+    .rating-1 { background: #f5c6cb; color: #721c24; }
+    
+    .remarks-cell {
+        max-width: 200px;
+        text-align: left;
+        font-size: 11px;
+        color: #ccc;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .back-btn {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 12px 24px;
+        background: #fff;
+        color: #000;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .back-btn:hover {
+        background: #f0f0f0;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(255, 255, 255, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="feedback-container">
+    <div class="header-section">
+        <h1>💬 Student Feedback Responses</h1>
+        <p>Complete feedback overview organized by student and course</p>
+    </div>
+
+    {% if students and courses %}
+    <div class="table-wrapper">
+        <table class="feedback-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="min-width: 180px;">Student Name</th>
+                    {% for course in courses %}
+                    <th colspan="6">{{ course }}</th>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    {% for course in courses %}
+                    <th>Q1</th>
+                    <th>Q2</th>
+                    <th>Q3</th>
+                    <th>Q4</th>
+                    <th>Q5</th>
+                    <th style="min-width: 150px;">Remarks</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>
+                        <div class="student-name">{{ student.name }}</div>
+                        <div class="student-email">{{ student.email }}</div>
+                    </td>
+                    {% for course in courses %}
+                        {% if student.feedbacks.get(course) %}
+                            {% set fb = student.feedbacks[course] %}
+                            <td>
+                                {% if fb.q1 %}
+                                <span class="rating-badge rating-{{ fb.q1 }}">{{ fb.q1 }}</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if fb.q2 %}
+                                <span class="rating-badge rating-{{ fb.q2 }}">{{ fb.q2 }}</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if fb.q3 %}
+                                <span class="rating-badge rating-{{ fb.q3 }}">{{ fb.q3 }}</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if fb.q4 %}
+                                <span class="rating-badge rating-{{ fb.q4 }}">{{ fb.q4 }}</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if fb.q5 %}
+                                <span class="rating-badge rating-{{ fb.q5 }}">{{ fb.q5 }}</span>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td class="remarks-cell" title="{{ fb.remarks }}">{{ fb.remarks if fb.remarks else '-' }}</td>
+                        {% else %}
+                            <td colspan="6" style="color: #666;">No feedback submitted</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="background: #1a1a1a; padding: 40px; border-radius: 12px; text-align: center;">
+        <p style="color: #999; font-size: 18px;">No feedback responses available.</p>
+    </div>
+    {% endif %}
+
+    <div style="text-align: center;">
+        <!-- per-page back removed; use global back button in header -->
+    </div>
+</div>
+{% endblock %}

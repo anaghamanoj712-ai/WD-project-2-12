@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Portal{% endblock %}</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        /* --- IIM Indore Building Background --- */
+        :root{
+            --accent:#9be7ff;
+        }
+
+        /* background image and overlay */
+        #bg-image { position: fixed; inset: 0; z-index: 0; pointer-events: none; background-size: cover; background-position: center; background-repeat: no-repeat; background-color: #000; }
+        #bg-overlay { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: rgba(0,0,0,0.2); }
+
+        /* main app container - laptop-first fixed max width and centered */
+        /* slightly tighter container for laptop-first layout */
+        .container { position: relative; z-index: 20; max-width: 1100px; margin: 36px auto; padding: 18px; }
+
+        /* Dashboard grid helpers - default: 3 columns for laptop/desktop */
+        .dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; align-items: start; }
+        .dashboard-grid .card { width: 100%; }
+
+        /* Utility sections for two-column or single-column breakdowns */
+        .two-col { display: grid; grid-template-columns: 1fr 420px; gap: 1.25rem; align-items: start; }
+        .single-col { display:block; }
+
+        @media (max-width: 1200px) {
+            body { padding: 36px 44px; }
+            .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+            .two-col { grid-template-columns: 1fr 360px; }
+            .container { max-width: 980px; }
+        }
+
+        @media (max-width: 880px) {
+            body { padding: 26px 18px; }
+            .dashboard-grid { grid-template-columns: repeat(1, 1fr); }
+            .two-col { grid-template-columns: 1fr; }
+            .container { max-width: 720px; margin: 22px auto; padding: 16px; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 12px 12px; }
+            .container { max-width: 100%; padding: 10px; margin: 12px auto; }
+            /* ensure cards stack and have breathing room */
+            .card { border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,0.45); }
+            .card-header { padding: 18px; }
+            .card-body { padding: 14px; }
+        }
+
+        /* body with building background */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #000;
+            color: #ffffff;
+            min-height: 100vh;
+            margin: 0;
+            padding: 48px 80px; /* laptop-first roomy canvas */
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+        }
+
+        /* --- original styles preserved below --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            border-bottom: 1px solid #333;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .card-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, #888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-header p {
+            font-size: 14px;
+            color: #999;
+        }
+
+        /* mobile: reduce padding and font sizes */
+        @media (max-width: 768px) {
+            .card-header {
+                padding: 20px;
+            }
+
+            .card-header h1 {
+                font-size: 22px;
+            }
+
+            .card-header p {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card-header {
+                padding: 15px;
+            }
+
+            .card-header h1 {
+                font-size: 18px;
+            }
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .card-body {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .card-body {
+                padding: 15px;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="date"],
+        input[type="time"],
+        input[type="url"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #1cffaa;
+            border-radius: 8px;
+        }
+
+        /* Global back button used on subpages (hidden on home/no-history) */
+        .back-btn {
+            position: relative;
+            z-index: 30;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            color: #000;
+            padding: 10px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-bottom: 18px;
+            border: none;
+        }
+
+        .back-btn:hover { background:#f0f0f0; transform: translateX(-4px); }
+
+        /* Announcement dropdown item styling */
+        .announce-item { padding:14px; cursor:pointer; display:block; }
+        /* Title: 20px, normal weight (not bold) */
+        .announce-item .announce-title { display:block !important; font-size:20px !important; font-weight:400 !important; color:#1cffaa !important; margin-bottom:12px !important; letter-spacing:0.3px; }
+        /* Body: 15px */
+        .announce-item .announce-body { display:block !important; font-size:15px !important; color:#cfe !important; line-height:1.5; white-space:pre-wrap; word-break:break-word; margin-bottom:12px !important; }
+        .announce-item .announce-date { display:block !important; font-size:10px !important; color:#9aa !important; margin-bottom:0 !important; font-weight:400 !important; }
+        .announce-item.unread { background:linear-gradient(90deg, rgba(28,255,170,0.05), transparent); border-left:3px solid #1cffaa; padding-left:11px; }
+        .announce-item.read { opacity:0.75; }
+        .announce-separator { border:none; border-top:1px solid rgba(255,255,255,0.1); margin:6px 0; }
+
+        input[type="text"]::placeholder,
+        input[type="email"]::placeholder,
+        input[type="password"]::placeholder,
+        input[type="date"]::placeholder,
+        input[type="time"]::placeholder,
+        input[type="url"]::placeholder,
+        select::placeholder,
+        textarea::placeholder {
+            color: #00ffcc;
+            opacity: 0.6;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #1cffaa;
+            background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
+            box-shadow: 0 0 15px rgba(28, 255, 170, 0.4), inset 0 0 10px rgba(28, 255, 170, 0.1);
+            color: #00ffff;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%231cffaa' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 40px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #ffffff;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.2);
+            background: #f0f0f0;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            .btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-error {
+            background: #2a1010;
+            color: #ff6b6b;
+            border: 1px solid #3a1515;
+        }
+
+        .alert-success {
+            background: #0f2a0f;
+            color: #6bff6b;
+            border: 1px solid #153a15;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-3 {
+            margin-top: 20px;
+        }
+
+        .link {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .link:hover {
+            color: #ccc;
+            text-decoration: underline;
+        }
+
+        .captcha-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            transform-origin: center;
+        }
+
+        /* reCAPTCHA scale on mobile */
+        @media (max-width: 480px) {
+            .captcha-container {
+                margin: 15px 0;
+                transform: scale(0.85);
+                transform-origin: top center;
+            }
+        }
+
+        .password-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+</head>
+<body>
+    <!-- announcements bell - only show to logged in users -->
+    {% if current_user.is_authenticated and (current_user.role != 'admin') %}
+    <div id="announcement-bell" style="position:fixed; top:20px; right:24px; z-index:50;">
+        <button id="announce-btn" aria-label="Notifications" style="background:transparent;border:none;color:#fff;cursor:pointer;font-size:40px;position:relative;padding:6px 10px;line-height:1;">
+            🔔
+            <span id="announce-badge" style="position:absolute; top:-6px; right:-6px; background:#ff4d4d; color:#fff; font-weight:700; font-size:12px; padding:4px 8px; border-radius:16px; display:none; min-width:18px; text-align:center;"></span>
+        </button>
+
+        <div id="announce-dropdown" style="display:none; width:360px; max-width:calc(100vw - 40px); background:linear-gradient(180deg,#0f0f14,#16151a); color:#fff; border-radius:10px; box-shadow:0 10px 30px rgba(0,0,0,0.6); margin-top:8px; overflow:hidden;">
+            <div style="padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; justify-content:space-between; align-items:center;">
+                <strong style="font-size:14px">Announcements</strong>
+                <button id="announce-mark-all" style="background:transparent;border:none;color:#9aa;cursor:pointer;font-size:13px;">Mark all read</button>
+            </div>
+            <div id="announce-list" style="max-height:480px; overflow:auto;">
+            </div>
+            <div style="padding:10px; text-align:center; border-top:1px solid rgba(255,255,255,0.04);">
+                <a id="announce-see-all" href="/announcements" style="color:#9be7ff; text-decoration:none; font-weight:700;">View all announcements</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <!-- background image and overlay -->
+    <div id="bg-image" style="background-image: url('{{ url_for('static', filename='images/iim-indore-bg.jpeg') }}');"></div>
+    <div id="bg-overlay"></div>
+
+    <div class="container">
+        <!-- Global back button for subpages: hide on main dashboards, login and signup -->
+        {% if request.path not in ['/', '/dashboard', '/professor-dashboard', '/admin', '/login', '/signup'] %}
+        <button id="global-back" class="back-btn">← Back</button>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+
+
+    <!-- lightweight interactive effects: constellation hover, micro-particles, and a gentle cursor trail -->
+    <script>
+    (function(){
+        const canvas = document.getElementById('spaceCanvas');
+        if(!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        let W = canvas.width = window.innerWidth;
+        let H = canvas.height = window.innerHeight;
+
+        // particles (micro dust): very low density, slow motion
+        const particleCount = Math.max(12, Math.floor((W * H) / 80000)); // sparse by design
+        const particles = [];
+        for(let i=0;i<particleCount;i++){
+            particles.push({
+                x: Math.random()*W,
+                y: Math.random()*H,
+                r: Math.random()*1.2 + 0.3,
+                vx: (Math.random()-0.5) * 0.05, // very slow
+                vy: (Math.random()-0.5) * 0.05,
+                alpha: 0.05 + Math.random()*0.25
+            });
+        }
+
+        // cursor trail - collects a short list of points and fades them
+        const trail = [];
+        const maxTrail = 18; // short, subtle
+
+        // keep latest star positions (computed from DOM .star elements)
+        let starPositions = [];
+        function updateStarPositions(){
+            starPositions = [];
+            document.querySelectorAll('#galaxy .star').forEach(s => {
+                const rect = s.getBoundingClientRect();
+                starPositions.push({x: rect.left + rect.width/2, y: rect.top + rect.height/2, size: rect.width});
+            });
+        }
+
+        // Constellation: when hovering a .card, show linked lines between nearby stars around the card center
+        let hoveredCard = null;
+        let hoverPos = null;
+        document.addEventListener('mousemove', function(e){
+            // update trail
+            trail.push({x:e.clientX, y:e.clientY, t: Date.now()});
+            if(trail.length > maxTrail) trail.shift();
+            // also update hover pos if a card is hovered
+            if(hoveredCard){
+                const rect = hoveredCard.getBoundingClientRect();
+                hoverPos = {x: rect.left + rect.width/2, y: rect.top + rect.height/2};
+            }
+        }, {passive:true});
+
+        // listen to card hover events
+        function cardEnter(e){ hoveredCard = e.currentTarget; updateStarPositions(); }
+        function cardLeave(){ hoveredCard = null; hoverPos = null; }
+        function attachCardListeners(){
+            document.querySelectorAll('.card').forEach(c=>{
+                c.removeEventListener('mouseenter', cardEnter);
+                c.removeEventListener('mouseleave', cardLeave);
+                c.addEventListener('mouseenter', cardEnter);
+                c.addEventListener('mouseleave', cardLeave);
+            });
+        }
+
+        // draw loop
+        let last = performance.now();
+        function frame(now){
+            const dt = Math.min(64, now-last);
+            last = now;
+
+            // clear with slight transparency to create soft trails for cursor/lines
+            ctx.clearRect(0, 0, W, H);
+
+            // draw micro particles
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for(let p of particles){
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                // wrap
+                if(p.x < 0) p.x = W;
+                if(p.x > W) p.x = 0;
+                if(p.y < 0) p.y = H;
+                if(p.y > H) p.y = 0;
+
+                ctx.beginPath();
+                const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*8);
+                g.addColorStop(0, 'rgba(255,255,255,' + p.alpha + ')');
+                g.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = g;
+                ctx.fillRect(p.x - p.r*8, p.y - p.r*8, p.r*16, p.r*16);
+            }
+            ctx.restore();
+
+            // draw constellation lines if hovering a card
+            if(hoveredCard && starPositions.length){
+                // find stars around the hover center
+                const center = hoverPos || (() => { const r = hoveredCard.getBoundingClientRect(); return {x:r.left + r.width/2, y:r.top + r.height/2}; })();
+                const radius = Math.min(230, Math.max(120, Math.min(W, H) * 0.16));
+                const nearby = starPositions.filter(s => {
+                    const dx = s.x - center.x; const dy = s.y - center.y;
+                    return (dx*dx + dy*dy) <= radius*radius;
+                });
+
+                // lines between neighbors
+                ctx.save();
+                ctx.lineWidth = 0.9;
+                ctx.strokeStyle = 'rgba(156, 217, 255, 0.55)';
+                ctx.beginPath();
+                for(let i=0;i<nearby.length;i++){
+                    for(let j=i+1;j<nearby.length;j++){
+                        const a = nearby[i], b = nearby[j];
+                        const dx = a.x - b.x; const dy = a.y - b.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if(dist < 110){
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                        }
+                    }
+                }
+                ctx.stroke();
+
+                // subtle radial glow around the center
+                const grad = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, radius);
+                grad.addColorStop(0, 'rgba(26, 187, 255, 0.08)');
+                grad.addColorStop(1, 'rgba(26, 187, 255, 0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(center.x - radius, center.y - radius, radius*2, radius*2);
+                ctx.restore();
+            }
+
+            // draw cursor trail (gentle fading dots)
+            if(trail.length){
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                for(let i=0;i<trail.length;i++){
+                    const p = trail[i];
+                    const age = (Date.now() - p.t) / 650.0; // trail fades in ~650ms
+                    const alpha = Math.max(0, 0.5 - age*0.9);
+                    if(alpha <= 0) continue;
+                    const size = (1.6 + (1 - i / trail.length) * 8) * Math.max(0.35, 1 - age);
+                    const gx = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size*3);
+                    gx.addColorStop(0, 'rgba(180, 227, 255,' + (alpha*0.35) + ')');
+                    gx.addColorStop(0.6, 'rgba(120, 190, 255,' + (alpha*0.18) + ')');
+                    gx.addColorStop(1, 'rgba(120, 190, 255, 0)');
+                    ctx.fillStyle = gx;
+                    ctx.fillRect(p.x - size*3, p.y - size*3, size*6, size*6);
+                }
+                ctx.restore();
+            }
+
+            requestAnimationFrame(frame);
+        }
+
+        // keep star positions up-to-date and canvas sized
+        function onResize(){
+            W = canvas.width = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+            // recreate very sparse particle positions if display changed dramatically
+            if(particles.length < Math.max(6, Math.floor((W*H)/200000))){
+                particles.length = 0;
+                const n = Math.max(12, Math.floor((W * H) / 80000));
+                for(let i=0;i<n;i++) particles.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+0.3,vx:(Math.random()-0.5)*0.05,vy:(Math.random()-0.5)*0.05,alpha:0.05 + Math.random()*0.25});
+            }
+            updateStarPositions();
+        }
+
+        // initial setup
+        attachCardListeners();
+        updateStarPositions();
+        requestAnimationFrame(frame);
+        window.addEventListener('resize', onResize);
+
+        // DOM updates may add cards or stars later — re-attach periodically (very infrequent)
+        setInterval(attachCardListeners, 1500);
+        setInterval(updateStarPositions, 1200);
+
+        // keep the trail trimmed to relevant recent points
+        setInterval(()=>{
+            const cutoff = Date.now() - 900; // older than ~900ms
+            while(trail.length && trail[0].t < cutoff) trail.shift();
+        }, 200);
+    })();
+    </script>
+
+    <script>
+    // announcements dropdown behaviour
+    (function(){
+        const btn = document.getElementById('announce-btn');
+        const dropdown = document.getElementById('announce-dropdown');
+        const list = document.getElementById('announce-list');
+        const badge = document.getElementById('announce-badge');
+        const markAllBtn = document.getElementById('announce-mark-all');
+
+        let open = false;
+
+        async function loadAnnouncements(){
+            try{
+                const res = await fetch('/api/announcements');
+                if(!res.ok) return;
+                const items = await res.json();
+                list.innerHTML = '';
+                let unread = 0;
+                
+                // Show only latest 3 announcements
+                const latest = items.slice(0, 3);
+                
+                if(latest.length === 0){
+                    list.innerHTML = '<div style="padding:14px; color:#9aa;">No announcements</div>';
+                }
+                
+                latest.forEach(function(it, idx){
+                    const row = document.createElement('div');
+                    row.className = 'announce-item ' + (it.is_read ? 'read' : 'unread');
+                    if(!it.is_read){ unread++; }
+
+                    // Title, body, date with distinct styling - order: title, content, date/time
+                    const title = '<div class="announce-title">'+escapeHtml(it.title)+'</div>';
+                    const bodyText = it.body ? it.body : it.preview;
+                    const body = '<div class="announce-body">'+escapeHtml(bodyText)+'</div>';
+                    const date = '<div class="announce-date">'+(new Date(it.created_at)).toLocaleString()+'</div>';
+
+                    row.innerHTML = title + body + date;
+
+                    row.addEventListener('click', function(e){
+                        // mark read then navigate to details
+                        if(!it.is_read){
+                            fetch('/api/announcements/mark_read/'+it.id, {method:'POST'}).then(()=>{
+                                row.classList.remove('unread');
+                                row.classList.add('read');
+                                // update badge count
+                                let v = parseInt(badge.textContent || '0');
+                                if(!isNaN(v) && v > 0){
+                                    v = Math.max(0, v - 1);
+                                    if(v === 0){ badge.style.display = 'none'; badge.textContent = ''; }
+                                    else { badge.textContent = v; }
+                                }
+                            }).catch(()=>{});
+                        }
+                        window.location = '/announcement/'+it.id;
+                    });
+
+                    list.appendChild(row);
+                    
+                    // Add separator between announcements (not after last one)
+                    if(idx !== latest.length - 1){
+                        const hr = document.createElement('hr');
+                        hr.className = 'announce-separator';
+                        list.appendChild(hr);
+                    }
+                });
+
+                if(unread > 0){
+                    badge.style.display = 'inline-block';
+                    badge.textContent = unread;
+                } else {
+                    badge.style.display = 'none';
+                }
+
+            }catch(e){
+                console.error('failed to load announcements', e);
+            }
+        }
+
+        function escapeHtml(s){
+            return (s||'').replace(/[&<>"']/g, function(c){
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c];
+            });
+        }
+
+        btn && btn.addEventListener('click', function(e){
+            e.stopPropagation();
+            open = !open;
+            dropdown.style.display = open ? 'block' : 'none';
+            if(open){ loadAnnouncements(); }
+        });
+
+        // mark all read
+        markAllBtn && markAllBtn.addEventListener('click', async function(e){
+            e.stopPropagation();
+            try{
+                const items = await (await fetch('/api/announcements')).json();
+                await Promise.all(items.map(it=> fetch('/api/announcements/mark_read/'+it.id, {method:'POST'})));
+                loadAnnouncements();
+            }catch(e){ console.error(e); }
+        });
+
+        // click-away closes
+        document.addEventListener('click', function(e){
+            if(open){
+                dropdown.style.display = 'none';
+                open = false;
+            }
+        });
+
+        // refresh unseen count occasionally
+        setInterval(loadAnnouncements, 60000);
+        // initial load (but not open)
+        loadAnnouncements();
+    })();
+    </script>
+
+    <script>
+    (function(){
+        var back = document.getElementById('global-back');
+        if(!back) return;
+
+        // Do not force visibility here — rendering is controlled by the template
+
+        back.addEventListener('click', function(e){
+            e.preventDefault();
+            try{
+                if(document.referrer){ var r = new URL(document.referrer); if(r.origin === location.origin){ history.back(); return; } }
+            }catch(e){}
+            if(history.length > 1){ history.back(); return; }
+            window.location = '/';
+        });
+    })();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+
+<!-- Confirmation modal for submissions (leave, feedback, venue booking) -->
+<style>
+    #confirm-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9999; }
+    #confirm-modal .backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+    #confirm-modal .dialog { position: relative; background: #0f1720; color: #fff; border-radius: 12px; padding: 20px; width: 420px; max-width: calc(100% - 40px); box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 2; }
+    #confirm-modal .dialog h3 { margin-bottom:8px; font-size:18px; color:#fff; }
+    #confirm-modal .dialog p { margin-bottom:18px; color:#cfe; font-size:14px; }
+    #confirm-modal .dialog .ok-btn { background: linear-gradient(135deg,#1cffaa 0%,#31e3dc 100%); border:none; padding:10px 16px; border-radius:8px; cursor:pointer; font-weight:700; color:#000; }
+    @media (max-width:480px){ #confirm-modal .dialog{ width: 94%; padding:14px } }
+</style>
+
+<div id="confirm-modal" aria-hidden="true">
+    <div class="backdrop"></div>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+        <h3 id="confirm-title">Submission received</h3>
+        <p id="confirm-body">Your submission has been received successfully.</p>
+        <div style="text-align:right;"><button class="ok-btn" id="confirm-ok">OK</button></div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // Read flashed messages from server
+        var flashed = {{ get_flashed_messages(with_categories=true) | tojson | safe }};
+        if(!flashed || !flashed.length) return;
+
+        // Look for specific success messages to show confirmation modal
+        var successMsgs = [
+            'Leave request submitted successfully.',
+            'Thank you for your feedback!',
+            'Booking submitted successfully. Status: pending'
+        ];
+
+        for(var i=0;i<flashed.length;i++){
+            var cat = flashed[i][0];
+            var msg = flashed[i][1] || '';
+            if(cat === 'success'){
+                // match any of the known success messages (partial match allowed for booking)
+                if(msg === successMsgs[0] || msg === successMsgs[1] || msg.indexOf('Booking submitted successfully') === 0){
+                    // show modal
+                    var modal = document.getElementById('confirm-modal');
+                    var bodyEl = document.getElementById('confirm-body');
+                    bodyEl.textContent = msg;
+                    modal.style.display = 'flex';
+                    modal.setAttribute('aria-hidden','false');
+
+                    function hide(){ modal.style.display = 'none'; modal.setAttribute('aria-hidden','true'); }
+                    document.getElementById('confirm-ok').addEventListener('click', hide);
+                    // click on backdrop also closes
+                    modal.querySelector('.backdrop').addEventListener('click', hide);
+                    break;
+                }
+            }
+        }
+    })();
+</script>

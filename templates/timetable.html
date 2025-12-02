@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block title %}Timetable - Student Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* use base background and layout; keep header spacing */
+    .timetable-header { margin-top: 2px; }
+    /* rely on base container width */
+
+    .timetable-header {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    /* tablet */
+    @media (max-width: 768px) {
+        .container {
+            max-width: 100%;
+        }
+
+        .timetable-header {
+            padding: 20px;
+        }
+
+        .timetable-header h1 {
+            font-size: 22px;
+        }
+
+        .back-btn {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+    }
+
+    /* mobile */
+    @media (max-width: 480px) {
+        .container {
+            max-width: 100%;
+            padding: 8px;
+        }
+
+        .timetable-header {
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .timetable-header h1 {
+            font-size: 16px;
+        }
+
+        .back-btn {
+            padding: 6px 10px;
+            font-size: 10px;
+        }
+
+        /* rely on base styles for body spacing on mobile */
+    }
+
+    .timetable-header h1 {
+        color: #fff;
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        color: #000;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+
+    .back-btn:hover {
+        background: #f0f0f0;
+        transform: translateX(-4px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+    }
+
+    .timetable-container {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        overflow-x: auto;
+    }
+
+    /* tablet and mobile */
+    @media (max-width: 768px) {
+        .timetable-container {
+            padding: 15px;
+            border-radius: 8px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .timetable-container {
+            padding: 8px;
+            border-radius: 6px;
+        }
+    }
+
+    .timetable-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 1200px;
+    }
+
+    .timetable-table th {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        color: #fff;
+        padding: 16px 12px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 13px;
+        border: 1px solid #333;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    @media (max-width: 768px) {
+        .timetable-table th {
+            padding: 10px 6px;
+            font-size: 11px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .timetable-table th {
+            padding: 6px 4px;
+            font-size: 9px;
+        }
+
+        .timetable-table td {
+            padding: 6px 4px;
+            font-size: 9px;
+        }
+    }
+
+    .timetable-table th:first-child {
+        border-top-left-radius: 12px;
+        min-width: 120px;
+        text-align: left;
+        padding-left: 20px;
+    }
+
+    .timetable-table th:last-child {
+        border-top-right-radius: 12px;
+    }
+
+    .timetable-table td {
+        padding: 16px 12px;
+        text-align: center;
+        border: 1px solid #2a2a2a;
+        background: #0f0f0f;
+        transition: all 0.3s ease;
+        vertical-align: top;
+    }
+
+    .timetable-table td:first-child {
+        font-weight: 700;
+        color: #fff;
+        background: #1a1a1a;
+        text-align: left;
+        padding-left: 20px;
+        border-right: 2px solid #333;
+    }
+
+    /* sunday / holiday row */
+    .holiday-row td { background: linear-gradient(135deg, #5a1616 0%, #3b0f0f 100%); color: #fff; }
+    .holiday-row td:first-child { background: linear-gradient(135deg, #7b1f1f 0%, #5a1616 100%); font-weight:800; }
+
+    /* lunch slot styling */
+    .lunch-slot { background: linear-gradient(135deg, #f7f3e9 0%, #efe6d0 100%); color: #111; font-weight:700; }
+
+    .timetable-table tr:hover td {
+        background: #1a1a1a;
+    }
+
+    .timetable-table tr:last-child td:first-child {
+        border-bottom-left-radius: 12px;
+    }
+
+    .timetable-table tr:last-child td:last-child {
+        border-bottom-right-radius: 12px;
+    }
+
+    .class-item {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+        border: 1px solid #3a3a3a;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 4px 0;
+        transition: all 0.3s ease;
+    }
+
+    .class-item:hover {
+        background: linear-gradient(135deg, #3a3a3a 0%, #2f2f2f 100%);
+        border-color: #4a4a4a;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
+
+    .class-name {
+        font-weight: 700;
+        color: #fff;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .class-room {
+        font-size: 11px;
+        color: #999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .empty-slot {
+        color: #555;
+        font-size: 12px;
+        font-style: italic;
+    }
+
+    .day-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .legend {
+        display: flex;
+        gap: 20px;
+        margin-top: 20px;
+        padding: 20px;
+        background: #0f0f0f;
+        border-radius: 12px;
+        border: 1px solid #2a2a2a;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #ccc;
+    }
+
+    .legend-icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        background: linear-gradient(135deg, #2a2a2a 0%, #1f1f1f 100%);
+        border: 1px solid #3a3a3a;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="timetable-header">
+    <h1>📅 Weekly Timetable</h1>
+    <p style="color: #999; margin-top: 8px;">IPM 2024-29 Batch Term V Schedule</p>
+</div>
+
+<div class="timetable-container">
+    <table class="timetable-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                {% for time_slot in timetable.time_slots %}
+                <th>{{ time_slot }}</th>
+                {# insert a lunch slot after the noon -> 1.15 slot when present in the CSV header #}
+                {% if '1.15' in time_slot or '1:15' in time_slot or ('noon' in time_slot|lower) %}
+                    <th>1:15 — 2:30</th>
+                {% endif %}
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for day, slots in timetable.schedule.items() %}
+            {% set is_sunday = 'sun' in day.lower() %}
+            <tr class="{% if is_sunday %}holiday-row{% endif %}">
+                <td>
+                    <div class="day-header">
+                        {% if is_sunday %}
+                            <span>Sunday</span>
+                        {% else %}
+                            <span>{{ day }}</span>
+                        {% endif %}
+                    </div>
+                </td>
+
+                {% if is_sunday %}
+                    {# for holidays show a single span across the remaining time columns #}
+                    {% set colspan_val = (timetable.time_slots|length) + 1 %}
+                    <td colspan="{{ colspan_val }}" style="text-align:center; font-weight:800;">Holiday</td>
+                {% else %}
+                    {% for time_slot in timetable.time_slots %}
+                        <td>
+                            {% if time_slot in slots %}
+                                {% for class_info in slots[time_slot] %}
+                                <div class="class-item">
+                                    <div class="class-name">{{ class_info.class }}</div>
+                                    <div class="class-room">📍 {{ class_info.room }}</div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <span class="empty-slot">—</span>
+                            {% endif %}
+                        </td>
+
+                        {# insert Lunch break column after the noon -> 1.15 slot #}
+                        {% if '1.15' in time_slot or '1:15' in time_slot or ('noon' in time_slot|lower) %}
+                            <td class="lunch-slot">Lunch break</td>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-icon"></div>
+            <span>Class Session</span>
+        </div>
+        <div class="legend-item">
+            <span>📍</span>
+            <span>Room Location</span>
+        </div>
+        <div class="legend-item">
+            <span style="color: #555;">—</span>
+            <span>Free Period</span>
+        </div>
+    </div>
+</div>
+
+<div class="footer" style="margin-top: 40px;">
+    <p style="color: #666;">© 2025 Student Portal. All rights reserved.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback - Student Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 style="color:#fff;margin-bottom:12px;">Course Feedback</h2>
+    <p style="color:#ccc;margin-bottom:20px;">Please provide honest feedback for your course. Answers use a scale 1 (Poor) - 5 (Excellent).</p>
+
+    <form method="post">
+        <label style="color:#fff;display:block;margin-top:10px;">Course</label>
+        <select name="course" required style="width:100%;padding:10px;border-radius:6px;background:#1a1a1a;color:#fff;border:1px solid #333;">
+            {% if courses %}
+                {% for c in courses %}
+                    <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+            {% else %}
+                <option value="">No courses found</option>
+            {% endif %}
+        </select>
+
+        {% for i in range(1,6) %}
+            <label style="color:#fff;display:block;margin-top:12px;">Q{{ i }} - Rate (1-5)</label>
+            <select name="q{{ i }}" required style="width:120px;padding:8px;border-radius:6px;background:#1a1a1a;color:#fff;border:1px solid #333;">
+                <option value="5">5</option>
+                <option value="4">4</option>
+                <option value="3">3</option>
+                <option value="2">2</option>
+                <option value="1">1</option>
+            </select>
+        {% endfor %}
+
+        <label style="color:#fff;display:block;margin-top:12px;">Additional remarks (optional)</label>
+        <textarea name="remarks" rows="4" style="width:100%;padding:10px;border-radius:6px;background:#1a1a1a;color:#fff;border:1px solid #333;"></textarea>
+
+        <div style="margin-top:18px;">
+            <button type="submit" style="background:#1cffaa;padding:10px 16px;border-radius:8px;border:none;font-weight:700;">Submit Feedback</button>
+            <a href="{{ url_for('dashboard') }}" style="margin-left:12px;color:#ccc;">Cancel</a>
+        </div>
+    </form>
+    </div>
+{% endblock %}

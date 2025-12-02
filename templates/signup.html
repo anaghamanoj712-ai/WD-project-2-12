@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Student Register{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h1>🎓 Student Registration</h1>
+        <p>Create a student account to access the portal</p>
+    </div>
+    <div class="card-body">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('signup') }}">
+            <div class="form-group">
+                <label for="full_name">Full Name</label>
+                <input type="text" id="full_name" name="full_name" required value="{{ full_name or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="student_id">Student ID</label>
+                <input type="text" id="student_id" name="student_id" required value="{{ student_id or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required value="{{ email or '' }}">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <div class="captcha-container">
+                <div class="g-recaptcha" data-sitekey="{{ site_key }}" data-theme="dark"></div>
+            </div>
+            <button type="submit" class="btn">Register as Student</button>
+        </form>
+        <div class="text-center mt-3">
+            <p>Already a student? <a href="{{ url_for('login') }}" class="link">Login</a></p>
+            <p>Professor? <a href="{{ url_for('professor_signup') }}" class="link">Professor Register</a></p>
+        </div>
+    </div>
+</div>
+<div class="footer">
+    <p>🔒 Google reCAPTCHA protected</p>
+    <p>© 2025 Student Portal</p>
+</div>
+{% endblock %}

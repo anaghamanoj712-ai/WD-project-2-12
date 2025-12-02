@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Study Materials - Student Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* use base background and laptop-first container */
+    /* use base container for consistent sizing */
+    .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+    .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        color: #000;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    .back-btn:hover {
+        background: #f0f0f0;
+        transform: translateX(-4px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+    }
+    .courses-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    .course-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .course-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        background: rgba(255, 255, 255, 1);
+    }
+    .course-code {
+        font-size: 14px;
+        color: #666;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+    .course-name {
+        font-size: 20px;
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+    .course-desc {
+        color: #666;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    .no-courses {
+        text-align: center;
+        color: white;
+        font-size: 18px;
+        margin: 60px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">
+        <h1>📚 Study Materials</h1>
+        <p>Access course materials and notes for your enrolled subjects</p>
+    </div>
+
+    {% if courses %}
+    <div class="courses-grid">
+        {% for course in courses %}
+        <a href="{{ url_for('course_materials', course_code=course.code) }}" class="course-card">
+            <div class="course-code">{{ course.code }}</div>
+            <div class="course-name">{{ course.name }}</div>
+            <div class="course-desc">View materials, notes, and resources for this course</div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-courses">
+        <p>📖 No courses available yet</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Admin - Requests{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* rely on base background and layout; add small top spacing for consistency */
+    .page-header { margin-top: 2px; }
+
+    .page-header {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .page-header h1 {
+        color: #fff;
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .page-header p {
+        color: #999;
+        font-size: 14px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        color: #000;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+
+    .back-btn:hover {
+        background: #f0f0f0;
+        transform: translateX(-4px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+    }
+
+    .section-title {
+        color: #fff;
+        font-size: 22px;
+        font-weight: 600;
+        margin-top: 30px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #2a2a2a;
+    }
+
+    .requests-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-bottom: 40px;
+    }
+
+    .request-card {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .request-card:hover {
+        border-color: #444;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .request-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .student-info {
+        color: #fff;
+    }
+
+    .student-name {
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 4px;
+    }
+
+    .student-email {
+        font-size: 13px;
+        color: #999;
+    }
+
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-approved {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-denied {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .request-details {
+        background: #0a0a0a;
+        border: 1px solid #2a2a2a;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .detail-row {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 10px;
+        color: #ccc;
+        font-size: 14px;
+    }
+
+    .detail-row:last-child {
+        margin-bottom: 0;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #fff;
+        min-width: 120px;
+    }
+
+    .detail-value {
+        color: #ccc;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-approve {
+        background: #10b981;
+        color: #fff;
+    }
+
+    .btn-approve:hover {
+        background: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-deny {
+        background: #ef4444;
+        color: #fff;
+    }
+
+    .btn-deny:hover {
+        background: #dc2626;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    }
+
+    .no-requests {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        color: #666;
+        font-size: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📋 Student Requests</h1>
+    <p>Review and manage venue bookings and leave requests</p>
+</div>
+
+<h2 class="section-title">🏢 Venue Bookings</h2>
+{% if bookings %}
+    <div class="requests-grid">
+        {% for b in bookings %}
+        <div class="request-card">
+            <div class="request-header">
+                <div class="student-info">
+                    <div class="student-name">{{ b.student_name or 'Unknown' }}</div>
+                    <div class="student-email">{{ b.student_email or '' }}</div>
+                </div>
+                <span class="status-badge status-{{ b.status }}">{{ b.status }}</span>
+            </div>
+            
+            <div class="request-details">
+                <div class="detail-row">
+                    <span class="detail-label">Venue:</span>
+                    <span class="detail-value">{{ b.venue_type }}{% if b.block %} - Block {{ b.block }}, Room {{ b.room_number }}{% endif %}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">{{ b.date }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Time:</span>
+                    <span class="detail-value">{{ b.start_time }} - {{ b.end_time }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Purpose:</span>
+                    <span class="detail-value">{{ b.purpose }}</span>
+                </div>
+                {% if b.approver_notes %}
+                <div class="detail-row">
+                    <span class="detail-label">Admin Notes:</span>
+                    <span class="detail-value">{{ b.approver_notes }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="action-buttons">
+                <a href="{{ url_for('approve_booking', bid=b.id) }}" class="action-btn btn-approve">✓ Approve</a>
+                <a href="{{ url_for('deny_booking', bid=b.id) }}" class="action-btn btn-deny">✗ Deny</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="no-requests">No venue booking requests found</div>
+{% endif %}
+
+<h2 class="section-title">🏖️ Leave Requests</h2>
+{% if leaves %}
+    <div class="requests-grid">
+        {% for l in leaves %}
+        <div class="request-card">
+            <div class="request-header">
+                <div class="student-info">
+                    <div class="student-name">{{ l.student_name or 'Unknown' }}</div>
+                    <div class="student-email">{{ l.student_email or '' }}</div>
+                </div>
+                <span class="status-badge status-{{ l.status }}">{{ l.status }}</span>
+            </div>
+            
+            <div class="request-details">
+                <div class="detail-row">
+                    <span class="detail-label">Leave Type:</span>
+                    <span class="detail-value">{{ l.leave_type }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Duration:</span>
+                    <span class="detail-value">{{ l.start_date }} to {{ l.end_date }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Reason:</span>
+                    <span class="detail-value">{{ l.reason }}</span>
+                </div>
+                {% if l.approver_notes %}
+                <div class="detail-row">
+                    <span class="detail-label">Admin Notes:</span>
+                    <span class="detail-value">{{ l.approver_notes }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="action-buttons">
+                <a href="{{ url_for('approve_leave', lid=l.id) }}" class="action-btn btn-approve">✓ Approve</a>
+                <a href="{{ url_for('deny_leave', lid=l.id) }}" class="action-btn btn-deny">✗ Deny</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="no-requests">No leave requests found</div>
+{% endif %}
+
+{% endblock %}
