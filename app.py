@@ -1362,47 +1362,50 @@ def venue_booking():
         venue_types = ['Classroom', 'Music Room', 'Auditorium', 'SAC Room']
         
         # Fetch user's bookings
+        bookings = []
+        error_msg = None
         try:
             conn = get_db()
             cursor = conn.cursor()
-            # Use id for ordering as it's safer than created_at which might be missing in older schemas
-            cursor.execute('SELECT * FROM bookings WHERE user_id = %s ORDER BY id DESC', (current_user.id,))
-            bookings = cursor.fetchall()
+            # Explicitly cast user_id to int to be safe
+            uid = int(current_user.id)
+            cursor.execute('SELECT * FROM bookings WHERE user_id = %s ORDER BY id DESC', (uid,))
+            rows = cursor.fetchall()
+            
+            # Convert rows to dicts and handle datetime objects
+            for row in rows:
+                b = dict(row)
+                # Ensure created_at is a string for template slicing
+                if b.get('created_at'):
+                    b['created_at'] = str(b['created_at'])
+                bookings.append(b)
+                
             conn.close()
         except Exception as e:
             print(f"Error fetching bookings: {e}")
-            flash(f"Error loading history: {str(e)}", "error")
+            error_msg = str(e)
             bookings = []
         
         # Calculate counts for side panel
-        counts = {'approved': 0, 'pending': 0, 'denied': 0}
-        if bookings:
-            for b in bookings:
-                # Handle potential dictionary access issues
-                try:
-                    status = b.get('status')
-                except AttributeError:
-                    # If b is not a dict-like object (e.g. tuple), try index if known, or default
-                    # With SELECT *, status is 9th column (index 9) based on CREATE TABLE
-                    try:
-                        status = b[9] 
-                    except:
-                        status = 'pending'
-                
-                status = (status or 'pending').lower()
-                
-                if status == 'approved':
-                    counts['approved'] += 1
-                elif status in ('denied', 'rejected', 'declined'):
-                    counts['denied'] += 1
-                else:
-                    counts['pending'] += 1
+        counts = {'approved': 0, 'pending': 0, 'disapproved': 0}
+        for b in bookings:
+            status = str(b.get('status', 'pending')).strip().lower()
+            
+            if status == 'approved':
+                counts['approved'] += 1
+            elif status in ('denied', 'rejected', 'declined', 'disapproved'):
+                counts['disapproved'] += 1
+            else:
+                counts['pending'] += 1
+        
+        if error_msg:
+            flash(f"System Error loading bookings: {error_msg}", "error")
         
         return render_template('venue_booking.html', user=current_user, blocks=blocks, room_numbers=room_numbers, venue_types=venue_types, bookings=bookings, counts=counts)
     except Exception as e:
         print(f"CRITICAL Error in venue_booking: {e}")
         flash(f"System Error: {str(e)}", "error")
-        return render_template('venue_booking.html', user=current_user, blocks=[], room_numbers=[], venue_types=[], bookings=[], counts={'approved': 0, 'pending': 0, 'denied': 0}, error=str(e))
+        return render_template('venue_booking.html', user=current_user, blocks=[], room_numbers=[], venue_types=[], bookings=[], counts={'approved': 0, 'pending': 0, 'disapproved': 0}, error=str(e))
 
 @app.route('/api/attendance-data')
 @login_required

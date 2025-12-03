@@ -273,7 +273,7 @@
     }
     .status-count.approved { color: #00ff00; }
     .status-count.pending { color: #ffa500; }
-    .status-count.denied { color: #ff0000; }
+    .status-count.denied, .status-count.disapproved { color: #ff0000; }
     .history-list {
         max-height: 600px;
         overflow-y: auto;
@@ -629,8 +629,8 @@
                     <span class="status-count pending">{{ counts['pending'] }}</span>
                 </div>
                 <div class="status-item">
-                    <span class="status-label">Denied</span>
-                    <span class="status-count denied">{{ counts['denied'] }}</span>
+                    <span class="status-label">Disapproved</span>
+                    <span class="status-count disapproved">{{ counts['disapproved'] }}</span>
                 </div>
             </div>
         </div>
