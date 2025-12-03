@@ -1336,7 +1336,18 @@ def venue_booking():
             print(f"Error fetching bookings: {e}")
             bookings = []
         
-        return render_template('venue_booking.html', user=current_user, blocks=blocks, room_numbers=room_numbers, venue_types=venue_types, bookings=bookings)
+        # Calculate counts for side panel
+        counts = {'approved': 0, 'pending': 0, 'denied': 0}
+        for b in bookings:
+            status = (b['status'] or 'pending').lower()
+            if status == 'approved':
+                counts['approved'] += 1
+            elif status in ('denied', 'rejected', 'declined'):
+                counts['denied'] += 1
+            else:
+                counts['pending'] += 1
+        
+        return render_template('venue_booking.html', user=current_user, blocks=blocks, room_numbers=room_numbers, venue_types=venue_types, bookings=bookings, counts=counts)
     except Exception as e:
         print(f"CRITICAL Error in venue_booking: {e}")
         return render_template('venue_booking.html', user=current_user, blocks=[], room_numbers=[], venue_types=[], bookings=[], error="An internal error occurred.")

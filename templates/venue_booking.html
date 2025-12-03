@@ -399,6 +399,13 @@
         font-weight: 500;
     }
     
+    .time-input-group input[type="number"]:hover {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }
+
     .time-input-group select {
         width: 75px !important;
         min-width: 75px;
@@ -552,6 +559,34 @@
                 </form>
             </div>
 
+            <script>
+                document.querySelector('form').addEventListener('submit', function(e) {
+                    const startHour = parseInt(document.querySelector('input[name="start_hour"]').value);
+                    const startMinute = parseInt(document.querySelector('input[name="start_minute"]').value);
+                    const startPeriod = document.querySelector('select[name="start_period"]').value;
+                    
+                    const endHour = parseInt(document.querySelector('input[name="end_hour"]').value);
+                    const endMinute = parseInt(document.querySelector('input[name="end_minute"]').value);
+                    const endPeriod = document.querySelector('select[name="end_period"]').value;
+                    
+                    let start24 = startHour;
+                    if (startPeriod === 'PM' && startHour !== 12) start24 += 12;
+                    if (startPeriod === 'AM' && startHour === 12) start24 = 0;
+                    
+                    let end24 = endHour;
+                    if (endPeriod === 'PM' && endHour !== 12) end24 += 12;
+                    if (endPeriod === 'AM' && endHour === 12) end24 = 0;
+                    
+                    const startTotal = start24 * 60 + startMinute;
+                    const endTotal = end24 * 60 + endMinute;
+                    
+                    if (endTotal <= startTotal) {
+                        e.preventDefault();
+                        alert('End time must be after start time!');
+                    }
+                });
+            </script>
+
             <div id="history-tab" class="tab-content">
                 <h2 class="form-title">Your Booking History</h2>
                 {% if bookings %}
@@ -587,15 +622,15 @@
             <div class="status-summary">
                 <div class="status-item">
                     <span class="status-label">Approved</span>
-                    <span class="status-count approved">{{ bookings | selectattr('status', 'equalto', 'approved') | list | length }}</span>
+                    <span class="status-count approved">{{ counts['approved'] }}</span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">Pending</span>
-                    <span class="status-count pending">{{ bookings | selectattr('status', 'equalto', 'pending') | list | length }}</span>
+                    <span class="status-count pending">{{ counts['pending'] }}</span>
                 </div>
                 <div class="status-item">
                     <span class="status-label">Denied</span>
-                    <span class="status-count denied">{{ bookings | selectattr('status', 'equalto', 'denied') | list | length }}</span>
+                    <span class="status-count denied">{{ counts['denied'] }}</span>
                 </div>
             </div>
         </div>
