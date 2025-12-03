@@ -1350,7 +1350,7 @@ def venue_booking():
         return render_template('venue_booking.html', user=current_user, blocks=blocks, room_numbers=room_numbers, venue_types=venue_types, bookings=bookings, counts=counts)
     except Exception as e:
         print(f"CRITICAL Error in venue_booking: {e}")
-        return render_template('venue_booking.html', user=current_user, blocks=[], room_numbers=[], venue_types=[], bookings=[], error="An internal error occurred.")
+        return render_template('venue_booking.html', user=current_user, blocks=[], room_numbers=[], venue_types=[], bookings=[], counts={'approved': 0, 'pending': 0, 'denied': 0}, error="An internal error occurred.")
 
 @app.route('/api/attendance-data')
 @login_required
