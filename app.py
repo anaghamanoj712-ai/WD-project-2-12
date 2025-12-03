@@ -1958,68 +1958,106 @@ def study_materials():
 @app.route('/study-materials/<course_code>')
 @login_required
 def course_materials(course_code):
+    """Display all study materials for a specific course"""
     try:
-        # Get sorting options
+        print(f"=== Loading materials for course: {course_code} ===")
+        
+        # Get sorting parameter
         sort_by = request.args.get('sort', 'date_desc')
         
+        # Connect to database
         conn = get_db()
         cursor = conn.cursor()
         
-        # Base query
-        query = '''SELECT sm.*, u.full_name as uploader_name 
-                   FROM study_materials sm 
-                   LEFT JOIN users u ON sm.uploaded_by = u.id 
-                   WHERE UPPER(sm.course_code) = UPPER(%s)'''
+        # Build query with proper sorting
+        base_query = '''
+            SELECT 
+                sm.id,
+                sm.course_code,
+                sm.course_name,
+                sm.title,
+                sm.description,
+                sm.file_path,
+                sm.created_at,
+                u.full_name as uploader_name
+            FROM study_materials sm
+            LEFT JOIN users u ON sm.uploaded_by = u.id
+            WHERE UPPER(TRIM(sm.course_code)) = UPPER(TRIM(%s))
+        '''
         
         # Add sorting
         if sort_by == 'date_asc':
-            query += ' ORDER BY sm.created_at ASC'
+            base_query += ' ORDER BY sm.created_at ASC'
         elif sort_by == 'date_desc':
-            query += ' ORDER BY sm.created_at DESC'
+            base_query += ' ORDER BY sm.created_at DESC'
         elif sort_by == 'name_asc':
-            query += ' ORDER BY sm.title ASC'
+            base_query += ' ORDER BY sm.title ASC'
         elif sort_by == 'name_desc':
-            query += ' ORDER BY sm.title DESC'
+            base_query += ' ORDER BY sm.title DESC'
         else:
-            query += ' ORDER BY sm.created_at DESC'
+            base_query += ' ORDER BY sm.created_at DESC'
         
-        cursor.execute(query, (course_code,))
+        # Execute query
+        cursor.execute(base_query, (course_code,))
         materials = cursor.fetchall()
         conn.close()
         
-        # Get course name
+        print(f"Found {len(materials)} materials for {course_code}")
+        
+        # Log materials for debugging
+        for mat in materials:
+            print(f"  - {mat['title']}: {mat['file_path']}")
+        
+        # Determine course name
         course_name = course_code
+        
+        # Try to get course name from attendance file
         try:
             courses = get_courses_from_attendance()
-            if courses is None:
-                courses = []
-            
-            # Also check DB for course name if not found in attendance
-            if not any(c.get('code') == course_code for c in courses if isinstance(c, dict)):
+            if courses:
+                for course in courses:
+                    if isinstance(course, dict) and course.get('code', '').upper() == course_code.upper():
+                        course_name = course.get('name', course_code)
+                        break
+        except Exception as e:
+            print(f"Warning: Could not get courses from attendance: {e}")
+        
+        # If not found, try to get from database
+        if course_name == course_code and materials:
+            try:
                 conn = get_db()
                 cursor = conn.cursor()
-                cursor.execute("SELECT DISTINCT course_name FROM study_materials WHERE course_code = %s LIMIT 1", (course_code,))
+                cursor.execute(
+                    "SELECT DISTINCT course_name FROM study_materials WHERE UPPER(TRIM(course_code)) = UPPER(TRIM(%s)) LIMIT 1",
+                    (course_code,)
+                )
                 row = cursor.fetchone()
                 conn.close()
-                if row:
+                if row and row['course_name']:
                     course_name = row['course_name']
-
-            for course in courses:
-                if isinstance(course, dict) and course.get('code') == course_code:
-                    course_name = course.get('name', course_code)
-                    break
-        except Exception as e:
-            print(f"Error getting course name: {e}")
-            # Use course_code as fallback
-            pass
+            except Exception as e:
+                print(f"Warning: Could not get course name from DB: {e}")
         
-        return render_template('course_materials.html', user=current_user, 
-                             materials=materials, course_code=course_code, 
-                             course_name=course_name, sort_by=sort_by)
+        print(f"Course name resolved to: {course_name}")
+        
+        # Render template with materials
+        return render_template(
+            'course_materials.html',
+            user=current_user,
+            materials=materials,
+            course_code=course_code,
+            course_name=course_name,
+            sort_by=sort_by
+        )
+        
     except Exception as e:
-        print(f"CRITICAL Error in course_materials route: {e}")
+        print(f"=== CRITICAL ERROR in course_materials route ===")
+        print(f"Course code: {course_code}")
+        print(f"Error: {e}")
         import traceback
         traceback.print_exc()
+        print(f"=== END ERROR ===")
+        
         flash(f'Error loading materials: {str(e)}', 'error')
         return redirect(url_for('study_materials'))
 

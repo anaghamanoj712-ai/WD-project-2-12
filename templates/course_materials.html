@@ -4,202 +4,226 @@
 
 {% block extra_css %}
 <style>
-    /* rely on base gradient and laptop-first container */
-    /* use base container for consistent sizing and spacing */
-    .header {
-        background: rgba(255, 255, 255, 0.95);
+    body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+    
+    .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        color: #333;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .back-button:hover {
+        transform: translateX(-4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    .course-header {
+        background: white;
         border-radius: 16px;
         padding: 30px;
         margin-bottom: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
     }
-    .header h1 {
-        color: #333;
-        font-size: 2.2rem;
-        margin-bottom: 8px;
-        font-weight: 600;
-    }
-    .header .course-code {
-        color: #667eea;
-        font-size: 14px;
-        font-weight: 600;
+    
+    .course-code-badge {
+        display: inline-block;
+        background: #667eea;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
         text-transform: uppercase;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }
-    .back-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: #fff;
-        color: #000;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 14px;
-        transition: all 0.3s ease;
-        margin-bottom: 20px;
-    }
-    .back-btn:hover {
-        background: #f0f0f0;
-        transform: translateX(-4px);
-        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
-    }
-    .controls {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 15px;
-    }
-    .sort-section {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-    .sort-section label {
-        font-weight: 600;
+    
+    .course-header h1 {
         color: #333;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
     }
-    .sort-section select {
-        padding: 8px 15px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        background: white;
-        color: #333;
-        font-size: 14px;
-        cursor: pointer;
-        transition: border-color 0.3s ease;
-    }
-    .sort-section select:focus {
-        outline: none;
-        border-color: #667eea;
-    }
-    .materials-count {
+    
+    .course-header p {
         color: #666;
         font-size: 14px;
-        font-weight: 500;
+        margin: 0;
     }
-    .materials-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+    
+    .materials-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
     }
+    
     .material-card {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
+        background: white;
+        border-radius: 16px;
         padding: 24px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         transition: all 0.3s ease;
-        position: relative;
     }
+    
     .material-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     }
-    .material-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 12px;
-        gap: 15px;
-    }
+    
     .material-title {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 700;
         color: #333;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
     }
+    
     .material-date {
-        font-size: 13px;
-        color: #666;
-        font-weight: 500;
-        white-space: nowrap;
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 12px;
     }
+    
     .material-description {
-        color: #555;
+        color: #666;
         font-size: 14px;
         line-height: 1.6;
         margin-bottom: 16px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
     }
-    .material-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
-        padding-top: 16px;
-        border-top: 1px solid #e0e0e0;
+    
+    .material-link-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 16px;
     }
+    
+    .link-label {
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+    
+    .open-link-button {
+        display: block;
+        width: 100%;
+        background: white;
+        color: #667eea;
+        padding: 14px 20px;
+        border-radius: 8px;
+        text-align: center;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+    }
+    
+    .open-link-button:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 16px rgba(255,255,255,0.3);
+        background: #f0f0f0;
+        color: #5568d3;
+    }
+    
+    .link-url {
+        color: rgba(255,255,255,0.8);
+        font-size: 11px;
+        margin-top: 8px;
+        word-break: break-all;
+        line-height: 1.4;
+    }
+    
     .uploader-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         color: #666;
         font-size: 13px;
+        padding-top: 12px;
+        border-top: 1px solid #e0e0e0;
     }
-    .download-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: #667eea;
-        color: white;
-        padding: 8px 16px;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    .download-btn:hover {
-        background: #5a6fd8;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
+    
     .no-materials {
-        background: rgba(255, 255, 255, 0.95);
+        background: white;
         border-radius: 16px;
         padding: 60px 30px;
         text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    
+    .no-materials h3 {
+        color: #333;
+        font-size: 24px;
+        margin-bottom: 12px;
+    }
+    
+    .no-materials p {
         color: #666;
         font-size: 16px;
     }
-    .material-link-btn {
-        display: inline-flex;
+    
+    .sort-controls {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
         align-items: center;
-        gap: 8px;
-        background: #667eea;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .sort-controls select {
+        padding: 8px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    
+    .materials-count {
+        color: #666;
         font-weight: 600;
         font-size: 14px;
-        transition: all 0.3s ease;
-    }
-    .material-link-btn:hover {
-        background: #5a6fd8;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
-        color: white;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="header">
-        <div class="course-code">{{ course_code }}</div>
+<div class="page-container">
+    <a href="{{ url_for('study_materials') }}" class="back-button">
+        ← Back to Courses
+    </a>
+    
+    <div class="course-header">
+        <span class="course-code-badge">{{ course_code }}</span>
         <h1>{{ course_name }}</h1>
-        <p style="color: #666; margin: 0;">Course materials and resources</p>
+        <p>Access all study materials and resources for this course</p>
     </div>
-
-    <div class="controls">
-        <div class="sort-section">
-            <label for="sortSelect">Sort by:</label>
+    
+    <div class="sort-controls">
+        <div>
+            <label for="sortSelect" style="margin-right: 10px; font-weight: 600;">Sort by:</label>
             <select id="sortSelect" onchange="changeSorting()">
                 <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Newest First</option>
                 <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Oldest First</option>
@@ -207,46 +231,51 @@
                 <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
             </select>
         </div>
-        <div class="materials-count">{{ materials|length }} material(s) available</div>
+        <div class="materials-count">
+            {{ materials|length }} Material{% if materials|length != 1 %}s{% endif %}
+        </div>
     </div>
-
+    
     {% if materials %}
-    <div class="materials-grid">
+    <div class="materials-container">
         {% for material in materials %}
         <div class="material-card">
-            <div class="material-header">
-                <div>
-                    <div class="material-title">{{ material['title'] }}</div>
-                    <div class="material-date">📅 {{ material['created_at'][:16] }}</div>
-                </div>
-            </div>
-
-            {% if material['file_path'] %}
-            <div style="margin-bottom: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
-                <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; margin-bottom: 8px; font-weight: 600;">📎 Study Material Link</div>
-                <a href="{{ material['file_path']|trim }}" target="_blank" rel="noopener noreferrer" class="material-link-btn">
-                    <span>🔗 Open Material</span>
-                </a>
-                <div style="margin-top: 8px; font-size: 12px; color: #888; word-break: break-all;">{{ material['file_path']|trim }}</div>
-            </div>
-            {% endif %}
+            <div class="material-title">{{ material['title'] }}</div>
+            <div class="material-date">📅 {{ material['created_at'][:16] if material['created_at'] else 'N/A' }}</div>
             
             {% if material['description'] %}
             <div class="material-description">{{ material['description'] }}</div>
             {% endif %}
             
-            <div class="material-meta">
-                <div class="uploader-info">
-                    👤 Uploaded by {{ material['uploader_name'] or 'Admin' }}
-                </div>
+            {% if material['file_path'] %}
+            <div class="material-link-section">
+                <div class="link-label">📎 Study Material</div>
+                <a href="{{ material['file_path']|trim }}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="open-link-button"
+                   onclick="window.open(this.href, '_blank'); return false;">
+                    🔗 Open in New Tab
+                </a>
+                <div class="link-url">{{ material['file_path']|trim }}</div>
+            </div>
+            {% else %}
+            <div style="padding: 12px; background: #fff3cd; border-radius: 8px; color: #856404; font-size: 13px;">
+                ⚠️ No link available for this material
+            </div>
+            {% endif %}
+            
+            <div class="uploader-info">
+                <span>👤</span>
+                <span>Uploaded by {{ material['uploader_name'] if material.get('uploader_name') else 'Professor' }}</span>
             </div>
         </div>
         {% endfor %}
     </div>
     {% else %}
     <div class="no-materials">
-        <h3 style="color: #333; margin-bottom: 12px;">📚 No Materials Yet</h3>
-        <p>Materials for this course will appear here once uploaded by the administrator.</p>
+        <h3>📚 No Materials Available</h3>
+        <p>Study materials for {{ course_name }} will appear here once uploaded by your professor.</p>
     </div>
     {% endif %}
 </div>
@@ -254,9 +283,20 @@
 <script>
     function changeSorting() {
         const sortBy = document.getElementById('sortSelect').value;
-        const currentUrl = new URL(window.location);
-        currentUrl.searchParams.set('sort', sortBy);
-        window.location.href = currentUrl.toString();
+        const url = new URL(window.location.href);
+        url.searchParams.set('sort', sortBy);
+        window.location.href = url.toString();
     }
+    
+    // Debug: Log all materials data
+    console.log('Course Materials Data:');
+    {% for material in materials %}
+    console.log({
+        id: {{ material['id'] }},
+        title: '{{ material['title'] }}',
+        file_path: '{{ material['file_path']|trim }}',
+        has_link: {{ 'true' if material['file_path'] else 'false' }}
+    });
+    {% endfor %}
 </script>
 {% endblock %}
