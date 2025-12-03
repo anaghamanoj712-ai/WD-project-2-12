@@ -233,7 +233,7 @@
         {% for material in materials %}
         <div class="material-card">
             <div class="material-title">{{ material['title'] }}</div>
-            <div class="material-date">📅 {{ material['created_at'][:16] if material['created_at'] else 'N/A' }}</div>
+            <div class="material-date">📅 {{ material['created_at'].strftime('%Y-%m-%d %H:%M') if material['created_at'] and material['created_at'].strftime is defined else material['created_at']|string|truncate(16, True, '') }}</div>
             
             {% if material['description'] %}
             <div class="material-description">{{ material['description'] }}</div>
@@ -242,14 +242,14 @@
             {% if material['file_path'] %}
             <div class="material-link-section">
                 <div class="link-label">📎 Study Material</div>
-                <a href="{{ material['file_path']|trim }}" 
+                <a href="{{ (material['file_path'] or '')|trim }}" 
                    target="_blank" 
                    rel="noopener noreferrer" 
                    class="open-link-button"
                    onclick="window.open(this.href, '_blank'); return false;">
                     🔗 Open in New Tab
                 </a>
-                <div class="link-url">{{ material['file_path']|trim }}</div>
+                <div class="link-url">{{ (material['file_path'] or '')|trim }}</div>
             </div>
             {% else %}
             <div style="padding: 12px; background: #fff3cd; border-radius: 8px; color: #856404; font-size: 13px;">
@@ -285,8 +285,8 @@
     {% for material in materials %}
     console.log({
         id: {{ material['id'] }},
-        title: '{{ material['title'] }}',
-        file_path: '{{ material['file_path']|trim }}',
+        title: {{ material['title']|tojson }},
+        file_path: {{ (material['file_path'] or '')|trim|tojson }},
         has_link: {{ 'true' if material['file_path'] else 'false' }}
     });
     {% endfor %}

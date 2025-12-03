@@ -2057,6 +2057,14 @@ def course_materials(course_code):
         import traceback
         traceback.print_exc()
         print(f"=== END ERROR ===")
+        return render_template(
+            'course_materials.html',
+            user=current_user,
+            materials=[],
+            course_code=course_code,
+            course_name=course_code,
+            error=f"Error loading materials: {str(e)}"
+        )
         
         flash(f'Error loading materials: {str(e)}', 'error')
         return redirect(url_for('study_materials'))
