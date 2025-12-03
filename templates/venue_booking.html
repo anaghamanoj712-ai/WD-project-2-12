@@ -348,55 +348,42 @@
         display: flex;
         gap: 10px;
         align-items: center;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        background: #121212;
         padding: 12px 16px;
         border-radius: 8px;
-        border: 2px solid #5affcd;
+        border: 1px solid #4a5a4a;
         transition: all 0.3s ease;
     }
     
-    /* Hover effect removed as requested
-    .time-input-group:hover {
-        border-color: #6bffdd;
-        background: linear-gradient(135deg, #1e2340 0%, #1a2445 100%);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(90, 255, 205, 0.15);
-    }
-    */
-    
     .time-input-group:focus-within {
-        border-color: #5affcd;
-        background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
-        box-shadow: 0 0 15px rgba(90, 255, 205, 0.3), inset 0 0 10px rgba(90, 255, 205, 0.1);
-        transform: translateY(0);
+        border-color: #888;
     }
     
     .time-input-group input[type="number"] {
-        width: 70px !important;
-        min-width: 70px;
-        max-width: 70px;
-        flex: 0 0 70px;
+        width: 60px !important;
+        min-width: 60px;
+        max-width: 60px;
+        flex: 0 0 60px;
         background: transparent;
         border: none;
-        padding: 8px 6px;
+        padding: 0;
         text-align: center;
-        font-size: 16px;
-        font-weight: 600;
-        color: #40b4cc;
+        font-size: 14px;
+        font-weight: normal;
+        color: #e0e0e0;
         margin: 0;
     }
     
     .time-input-group input[type="number"]:focus {
         outline: none;
-        background: rgba(64, 180, 204, 0.1);
-        border-radius: 4px;
+        background: transparent;
         box-shadow: none;
     }
     
     .time-input-group input[type="number"]::placeholder {
-        color: #6bffdd;
-        opacity: 0.6;
-        font-weight: 500;
+        color: #666;
+        opacity: 1;
+        font-weight: normal;
     }
     
     .time-input-group input[type="number"]:hover {
@@ -407,34 +394,38 @@
     }
 
     .time-input-group select {
-        width: 75px !important;
-        min-width: 75px;
-        max-width: 75px;
-        flex: 0 0 75px;
-        background: rgba(48, 217, 168, 0.15);
-        border: 1px solid #30d9a8;
-        padding: 8px 10px;
+        width: 60px !important;
+        min-width: 60px;
+        max-width: 60px;
+        flex: 0 0 60px;
+        background: transparent;
+        border: none;
+        padding: 0;
         text-align: center;
-        font-size: 15px;
-        font-weight: 700;
-        color: #30d9a8;
+        font-size: 14px;
+        font-weight: normal;
+        color: #e0e0e0;
         margin: 0;
-        border-radius: 6px;
         cursor: pointer;
         appearance: none;
         text-align-last: center;
     }
     
+    .time-input-group select option {
+        background: #121212;
+        color: #e0e0e0;
+    }
+    
     .time-input-group select:focus {
         outline: none;
-        background: rgba(48, 217, 168, 0.25);
-        box-shadow: 0 0 8px rgba(48, 217, 168, 0.4);
+        background: transparent;
+        box-shadow: none;
     }
     
     .time-input-group .time-separator {
-        color: #40b4cc;
-        font-size: 24px;
-        font-weight: 700;
+        color: #e0e0e0;
+        font-size: 18px;
+        font-weight: normal;
         flex: 0 0 auto;
         line-height: 1;
         user-select: none;
