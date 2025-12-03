@@ -595,16 +595,16 @@
                     <div class="history-item">
                         <div class="history-header">
                             <span class="history-venue">{{ booking['venue_type'] }}{% if booking['block'] %} - Block {{ booking['block'] }}, Room {{ booking['room_number'] }}{% endif %}</span>
-                            <span class="badge {{ booking['status'] }}">{{ booking['status'] }}</span>
+                            <span class="badge {{ booking['status']|lower }}">{{ booking['status'] }}</span>
                         </div>
                         <div class="history-meta">
                             <strong>Date:</strong> {{ booking['date'] }}<br>
                             <strong>Time:</strong> {{ booking['start_time']|time12 }} - {{ booking['end_time']|time12 }}<br>
                             <strong>Purpose:</strong> {{ booking['purpose'] }}<br>
-                            {% if booking['approver_notes'] %}
+                            {% if booking.get('approver_notes') %}
                             <strong>Admin Notes:</strong> {{ booking['approver_notes'] }}<br>
                             {% endif %}
-                            <strong>Requested:</strong> {{ booking['created_at'][:16] }}
+                            <strong>Requested:</strong> {{ booking.get('created_at', '')[:16] }}
                         </div>
                     </div>
                     {% endfor %}
