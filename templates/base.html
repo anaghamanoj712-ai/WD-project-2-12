@@ -355,6 +355,7 @@
             margin-top: 20px;
         }
 
+        /* Additional CSS from child templates */
         {% block extra_css %}{% endblock %}
     </style>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
@@ -769,7 +770,9 @@
 <script>
     (function(){
         // Read flashed messages from server
+        /* jshint ignore:start */
         var flashed = {{ get_flashed_messages(with_categories=true) | tojson | safe }};
+        /* jshint ignore:end */
         if(!flashed || !flashed.length) return;
 
         // Look for specific success messages to show confirmation modal
