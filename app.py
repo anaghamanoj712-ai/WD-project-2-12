@@ -1958,58 +1958,70 @@ def study_materials():
 @app.route('/study-materials/<course_code>')
 @login_required
 def course_materials(course_code):
-    # Get sorting options
-    sort_by = request.args.get('sort', 'date_desc')
-    
-    conn = get_db()
-    cursor = conn.cursor()
-    
-    # Base query
-    query = '''SELECT sm.*, u.full_name as uploader_name 
-               FROM study_materials sm 
-               LEFT JOIN users u ON sm.uploaded_by = u.id 
-               WHERE UPPER(sm.course_code) = UPPER(%s)'''
-    
-    # Add sorting
-    if sort_by == 'date_asc':
-        query += ' ORDER BY sm.created_at ASC'
-    elif sort_by == 'date_desc':
-        query += ' ORDER BY sm.created_at DESC'
-    elif sort_by == 'name_asc':
-        query += ' ORDER BY sm.title ASC'
-    elif sort_by == 'name_desc':
-        query += ' ORDER BY sm.title DESC'
-    else:
-        query += ' ORDER BY sm.created_at DESC'
-    
-    cursor.execute(query, (course_code,))
-    materials = cursor.fetchall()
-    conn.close()
-    
-    # Get course name
-    courses = get_courses_from_attendance()
-    if courses is None:
-        courses = []
-    course_name = course_code
-    
-    # Also check DB for course name if not found in attendance
-    if not any(c.get('code') == course_code for c in courses if isinstance(c, dict)):
-         conn = get_db()
-         cursor = conn.cursor()
-         cursor.execute("SELECT DISTINCT course_name FROM study_materials WHERE course_code = %s LIMIT 1", (course_code,))
-         row = cursor.fetchone()
-         conn.close()
-         if row:
-             course_name = row['course_name']
+    try:
+        # Get sorting options
+        sort_by = request.args.get('sort', 'date_desc')
+        
+        conn = get_db()
+        cursor = conn.cursor()
+        
+        # Base query
+        query = '''SELECT sm.*, u.full_name as uploader_name 
+                   FROM study_materials sm 
+                   LEFT JOIN users u ON sm.uploaded_by = u.id 
+                   WHERE UPPER(sm.course_code) = UPPER(%s)'''
+        
+        # Add sorting
+        if sort_by == 'date_asc':
+            query += ' ORDER BY sm.created_at ASC'
+        elif sort_by == 'date_desc':
+            query += ' ORDER BY sm.created_at DESC'
+        elif sort_by == 'name_asc':
+            query += ' ORDER BY sm.title ASC'
+        elif sort_by == 'name_desc':
+            query += ' ORDER BY sm.title DESC'
+        else:
+            query += ' ORDER BY sm.created_at DESC'
+        
+        cursor.execute(query, (course_code,))
+        materials = cursor.fetchall()
+        conn.close()
+        
+        # Get course name
+        course_name = course_code
+        try:
+            courses = get_courses_from_attendance()
+            if courses is None:
+                courses = []
+            
+            # Also check DB for course name if not found in attendance
+            if not any(c.get('code') == course_code for c in courses if isinstance(c, dict)):
+                conn = get_db()
+                cursor = conn.cursor()
+                cursor.execute("SELECT DISTINCT course_name FROM study_materials WHERE course_code = %s LIMIT 1", (course_code,))
+                row = cursor.fetchone()
+                conn.close()
+                if row:
+                    course_name = row['course_name']
 
-    for course in courses:
-        if isinstance(course, dict) and course.get('code') == course_code:
-            course_name = course.get('name', course_code)
-            break
-    
-    return render_template('course_materials.html', user=current_user, 
-                         materials=materials, course_code=course_code, 
-                         course_name=course_name, sort_by=sort_by)
+            for course in courses:
+                if isinstance(course, dict) and course.get('code') == course_code:
+                    course_name = course.get('name', course_code)
+                    break
+        except Exception as e:
+            print(f"Error getting course name: {e}")
+            # Use course_code as fallback
+            pass
+        
+        return render_template('course_materials.html', user=current_user, 
+                             materials=materials, course_code=course_code, 
+                             course_name=course_name, sort_by=sort_by)
+    except Exception as e:
+        print(f"CRITICAL Error in course_materials route: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error loading materials: {str(e)}', 'error')
+        return redirect(url_for('study_materials'))
 
 @app.route('/admin/study-materials')
 @login_required
@@ -2060,73 +2072,87 @@ def upload_material():
 @professor_required
 def professor_upload_material():
     if request.method == 'POST':
-        course_code = request.form.get('course_code')
-        course_name = request.form.get('course_name')
-        title = request.form.get('title')
-        description = request.form.get('description')
-        file_url = request.form.get('file_url')
-        
-        if not all([course_code, course_name, title]):
-            flash('Please fill all required fields', 'error')
+        try:
+            course_code = request.form.get('course_code')
+            course_name = request.form.get('course_name')
+            title = request.form.get('title')
+            description = request.form.get('description')
+            file_url = request.form.get('file_url')
+            
+            if not all([course_code, course_name, title]):
+                flash('Please fill all required fields', 'error')
+                return redirect(url_for('professor_upload_material'))
+            
+            conn = get_db()
+            cursor = conn.cursor()
+            cursor.execute('''INSERT INTO study_materials 
+                              (course_code, course_name, title, description, file_path, uploaded_by)
+                              VALUES (%s, %s, %s, %s, %s, %s)''',
+                           (course_code, course_name, title, description, file_url, current_user.id))
+            conn.commit()
+            conn.close()
+            
+            flash('Material uploaded successfully', 'success')
             return redirect(url_for('professor_upload_material'))
-        
-        conn = get_db()
-        cursor = conn.cursor()
-        cursor.execute('''INSERT INTO study_materials 
-                          (course_code, course_name, title, description, file_path, uploaded_by)
-                          VALUES (%s, %s, %s, %s, %s, %s)''',
-                       (course_code, course_name, title, description, file_url, current_user.id))
-        conn.commit()
-        conn.close()
-        
-        flash('Material uploaded successfully', 'success')
-        return redirect(url_for('professor_upload_material'))
+        except Exception as e:
+            print(f"Error uploading material: {e}")
+            import traceback
+            traceback.print_exc()
+            flash(f'Error uploading material: {str(e)}', 'error')
+            return redirect(url_for('professor_upload_material'))
     
     # GET request: show upload form with professor's courses
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT DISTINCT course_code, course_name FROM study_materials WHERE uploaded_by = %s ORDER BY course_name', 
-                   (current_user.id,))
-    course_rows = cursor.fetchall()
-    conn.close()
-    
-    # Get unique courses from materials
-    courses = []
-    seen = set()
-    for material in course_rows:
-        key = (material['course_code'], material['course_name'])
-        if key not in seen:
-            courses.append(key)
-            seen.add(key)
-    
-    # Add hardcoded courses from courses.csv mapping
-    default_courses = [
-        ('WD', 'Web Development'),
-        ('LSS-II', 'Language Skills Spanish II'),
-        ('ECOM', 'Econometrics'),
-        ('CSI', 'Contemporary Social Issues'),
-        ('AETH', 'Applied Ethics'),
-        ('LAW', 'Law'),
-        ('LP', 'Linear Programming'),
-        ('MVS', 'Multivariate Statistics'),
-        ('LSF-II', 'Language Skills French II'),
-    ]
-    
-    # Combine and deduplicate
-    for course in default_courses:
-        if course not in courses:
-            courses.append(course)
-    
-    courses.sort(key=lambda x: x[1])  # Sort by course name
-    
-    # Also fetch the professor's uploaded materials (for listing and potential delete)
-    conn = get_db()
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM study_materials WHERE uploaded_by = %s ORDER BY created_at DESC', (current_user.id,))
-    materials = cursor.fetchall()
-    conn.close()
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT DISTINCT course_code, course_name FROM study_materials WHERE uploaded_by = %s ORDER BY course_name', 
+                       (current_user.id,))
+        course_rows = cursor.fetchall()
+        conn.close()
+        
+        # Get unique courses from materials
+        courses = []
+        seen = set()
+        for material in course_rows:
+            key = (material['course_code'], material['course_name'])
+            if key not in seen:
+                courses.append(key)
+                seen.add(key)
+        
+        # Add hardcoded courses from courses.csv mapping
+        default_courses = [
+            ('WD', 'Web Development'),
+            ('LSS-II', 'Language Skills Spanish II'),
+            ('ECOM', 'Econometrics'),
+            ('CSI', 'Contemporary Social Issues'),
+            ('AETH', 'Applied Ethics'),
+            ('LAW', 'Law'),
+            ('LP', 'Linear Programming'),
+            ('MVS', 'Multivariate Statistics'),
+            ('LSF-II', 'Language Skills French II'),
+        ]
+        
+        # Combine and deduplicate
+        for course in default_courses:
+            if course not in courses:
+                courses.append(course)
+        
+        courses.sort(key=lambda x: x[1])  # Sort by course name
+        
+        # Also fetch the professor's uploaded materials (for listing and potential delete)
+        conn = get_db()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM study_materials WHERE uploaded_by = %s ORDER BY created_at DESC', (current_user.id,))
+        materials = cursor.fetchall()
+        conn.close()
 
-    return render_template('professor_study_materials.html', user=current_user, courses=courses, materials=materials)
+        return render_template('professor_study_materials.html', user=current_user, courses=courses, materials=materials)
+    except Exception as e:
+        print(f"Error loading professor materials page: {e}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error loading study materials: {str(e)}', 'error')
+        return render_template('professor_study_materials.html', user=current_user, courses=[], materials=[])
 
 @app.route('/admin/delete-material/<int:material_id>')
 @login_required
