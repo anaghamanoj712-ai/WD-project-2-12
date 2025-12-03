@@ -191,13 +191,13 @@
 <h2 style="color: #fff; margin-top:18px;">Recent Announcements</h2>
     <div style="display:grid; gap:10px; margin-top:8px;">
     {% for a in recent_announcements %}
-    <div style="background:#0f0f12; border:1px solid #222; padding:12px; border-radius:8px; color:#e7f;">
+    <div style="background:#0f0f12; border:1px solid #222; padding:12px; border-radius:8px; color:#e0e0e0;">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
             <div style="flex:1;">
                 <strong style="font-size:15px;">{{ a.title }}</strong>
-                <div style="color:#9aa; font-size:12px; margin-top:4px;">{{ a.snippet }}{% if a.snippet|length >= 240 %}...{% endif %}</div>
+                <div style="color:#888; font-size:12px; margin-top:4px;">{{ a.snippet }}{% if a.snippet|length >= 240 %}...{% endif %}</div>
             </div>
-            <div style="color:#9aa; font-size:12px; text-align:right; min-width:120px;">{{ a.created_at }}</div>
+            <div style="color:#888; font-size:12px; text-align:right; min-width:120px;">{{ a.created_at }}</div>
         </div>
     </div>
     {% endfor %}

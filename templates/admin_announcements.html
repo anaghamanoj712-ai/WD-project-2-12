@@ -7,9 +7,9 @@
 /* container uses base layout (login page) */
 .announce-form { background:#0f0f12; border:1px solid #222; padding:16px; border-radius:8px; color:#fff; }
 .announce-list { margin-top:16px; display:grid; gap:12px }
-.announce-item { padding:12px; background:#141418; border-radius:8px; border:1px solid #232327; color:#eaf; }
-.announce-item .meta { color:#9aa; font-size:12px; text-align:right }
-.btn-primary { background:linear-gradient(90deg,#1cffaa,#0078ff); color:#001; padding:8px 12px; border-radius:8px; border:none; font-weight:700 }
+.announce-item { padding:12px; background:#141418; border-radius:8px; border:1px solid #232327; color:#e0e0e0; }
+.announce-item .meta { color:#888; font-size:12px; text-align:right }
+.btn-primary { background:linear-gradient(90deg,#8b9d83,#6a7c63); color:#fff; padding:8px 12px; border-radius:8px; border:none; font-weight:700 }
 .btn-danger { background:#ff6b6b; color:#fff; padding:8px 12px; border-radius:8px; border:none }
 </style>
 {% endblock %}
@@ -17,7 +17,7 @@
 {% block content %}
 <div class="dashboard-header" style="margin-bottom:10px;">
     <h1>Announcements</h1>
-    <p style="color:#9aa;">Publish announcements for professors and students from this admin panel.</p>
+    <p style="color:#888;">Publish announcements for professors and students from this admin panel.</p>
 </div>
 
 <div class="container">
@@ -38,7 +38,7 @@
             <div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start;">
                 <div style="flex:1;">
                     <strong style="font-size:15px">{{ a.title }}</strong>
-                    <div style="color:#9aa; margin-top:6px">{{ a.body[:260] }}{% if a.body|length > 260 %}...{% endif %}</div>
+                    <div style="color:#d0d0d0; margin-top:6px">{{ a.body[:260] }}{% if a.body|length > 260 %}...{% endif %}</div>
                 </div>
                 <div style="min-width:160px; text-align:right;">
                     <div class="meta">{{ a.created_at }}</div>
@@ -51,7 +51,7 @@
             </div>
         </div>
         {% else %}
-        <div style="color:#9aa; padding:12px; background:#0d0d0e; border-radius:8px;">No announcements yet</div>
+        <div style="color:#888; padding:12px; background:#0d0d0e; border-radius:8px;">No announcements yet</div>
         {% endfor %}
     </div>
 </div>

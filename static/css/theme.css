@@ -2,7 +2,7 @@
 :root {
     --card-grad: linear-gradient(135deg,#0f0f12 0%, #17171a 100%);
     --card-border: #22242b;
-    --muted-text: #9aa;
+    --muted-text: #888;
 }
 
 /* Apply dark gradient boxes to commonly used page blocks and cards.
@@ -45,14 +45,14 @@
 .course-desc,
 .card-body p,
 .announce-item .announce-body {
-    color: #cfe !important;
+    color: #d0d0d0 !important;
 }
 
 /* Keep buttons visually distinct — don't force all to dark; preserve existing CTA styles */
 .download-btn { background: linear-gradient(135deg,#667eea 0%, #5a6fd8 100%) !important; color:#fff !important; }
 
 /* Ensure form controls keep the dark input styling across pages */
-input, select, textarea { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important; color:#00ffff !important; border:2px solid #1cffaa !important; }
+input, select, textarea { background: #121212 !important; color:#e0e0e0 !important; border:1px solid #4a5a4a !important; }
 
 /* small helpers for legacy templates that used large white blocks */
 .no-materials, .no-courses { background: var(--card-grad) !important; color: #ccc !important; }
