@@ -18,11 +18,11 @@
         <td>{{ appt['purpose'] }}</td>
         <td>
             {% if appt['status'] == "pending" %}
-            <span style="color:#bfa912;">Pending</span>
+            <span style="color:#ffa500;">Pending</span>
             {% elif appt['status'] == "accepted" %}
-            <span style="color:#14c900;">Accepted</span>
+            <span style="color:#00ff00;">Accepted</span>
             {% else %}
-            <span style="color:#ff4141;">Declined</span>
+            <span style="color:#ff0000;">Declined</span>
             {% endif %}
         </td>
     </tr>
