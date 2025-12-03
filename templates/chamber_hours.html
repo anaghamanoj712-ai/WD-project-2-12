@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Chamber Hours{% endblock %}
+{% block title %}Availability Hours{% endblock %}
 {% block extra_css %}
 <style>
 .back-btn {
@@ -161,7 +161,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 {% endblock %}
 {% block content %}
 <div class="chamber-management-header">
-    <h1 style="font-weight:700; color:#fff; font-size:2rem; margin-bottom:7px;">🕑 Chamber Hours</h1>
+    <h1 style="font-weight:700; color:#fff; font-size:2rem; margin-bottom:7px;">🕑 Availability Hours</h1>
     <p style="color:#999;">Set or update your available slots for students to book meetings.</p>
 </div>
 <form method="POST" action="{{ url_for('chamber_hours') }}" class="chamber-hours-form" id="chamberForm">

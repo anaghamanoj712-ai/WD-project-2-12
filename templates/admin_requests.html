@@ -319,8 +319,13 @@
                     </div>
 
                     <div class="action-buttons">
-                        <a href="{{ url_for('approve_booking', bid=b.id) }}" class="action-btn btn-approve">✓ Approve</a>
-                        <a href="{{ url_for('deny_booking', bid=b.id) }}" class="action-btn btn-deny">✗ Deny</a>
+                        {% if b.status == 'pending' %}
+                        <a href="{{ url_for('approve_booking', bid=b.id) }}" class="action-btn btn-approve" onclick="return confirm('Are you sure you want to approve this booking?');">✓ Approve</a>
+                        <a href="{{ url_for('deny_booking', bid=b.id) }}" class="action-btn btn-deny" onclick="return confirm('Are you sure you want to deny this booking?');">✗ Deny</a>
+                        {% else %}
+                        <button class="action-btn btn-approve" disabled style="opacity:0.5; cursor:not-allowed;">✓ Approve</button>
+                        <button class="action-btn btn-deny" disabled style="opacity:0.5; cursor:not-allowed;">✗ Deny</button>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}
@@ -366,8 +371,13 @@
                     </div>
 
                     <div class="action-buttons">
-                        <a href="{{ url_for('approve_leave', lid=l.id) }}" class="action-btn btn-approve">✓ Approve</a>
-                        <a href="{{ url_for('deny_leave', lid=l.id) }}" class="action-btn btn-deny">✗ Deny</a>
+                        {% if l.status == 'pending' %}
+                        <a href="{{ url_for('approve_leave', lid=l.id) }}" class="action-btn btn-approve" onclick="return confirm('Are you sure you want to approve this leave request?');">✓ Approve</a>
+                        <a href="{{ url_for('deny_leave', lid=l.id) }}" class="action-btn btn-deny" onclick="return confirm('Are you sure you want to deny this leave request?');">✗ Deny</a>
+                        {% else %}
+                        <button class="action-btn btn-approve" disabled style="opacity:0.5; cursor:not-allowed;">✓ Approve</button>
+                        <button class="action-btn btn-deny" disabled style="opacity:0.5; cursor:not-allowed;">✗ Deny</button>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}

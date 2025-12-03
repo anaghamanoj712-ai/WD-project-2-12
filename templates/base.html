@@ -12,7 +12,7 @@
         }
 
         /* background gradient */
-        #bg-image { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%); }
+        #bg-image { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: #696969; }
         #bg-overlay { position: fixed; inset: 0; z-index: 1; pointer-events: none; background: rgba(0,0,0,0.2); }
 
         /* main app container - laptop-first fixed max width and centered */
@@ -780,7 +780,8 @@
         var successMsgs = [
             'Leave request submitted successfully.',
             'Thank you for your feedback!',
-            'Booking submitted successfully. Status: pending'
+            'Booking submitted successfully. Status: pending',
+            'Announcement published successfully.'
         ];
 
         for(var i=0;i<flashed.length;i++){
@@ -788,7 +789,7 @@
             var msg = flashed[i][1] || '';
             if(cat === 'success'){
                 // match any of the known success messages (partial match allowed for booking)
-                if(msg === successMsgs[0] || msg === successMsgs[1] || msg.indexOf('Booking submitted successfully') === 0){
+                if(msg === successMsgs[0] || msg === successMsgs[1] || msg === successMsgs[3] || msg.indexOf('Booking submitted successfully') === 0){
                     // show modal
                     var modal = document.getElementById('confirm-modal');
                     var bodyEl = document.getElementById('confirm-body');
