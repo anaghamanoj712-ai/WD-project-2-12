@@ -287,7 +287,7 @@
                 <th>{{ time_slot }}</th>
                 {# insert a lunch slot after the noon -> 1.15 slot when present in the CSV header #}
                 {% if '1.15' in time_slot or '1:15' in time_slot or ('noon' in time_slot|lower) %}
-                    <th>1:15 — 2:30</th>
+                    <th>1:15pm to 2:30pm</th>
                 {% endif %}
                 {% endfor %}
             </tr>

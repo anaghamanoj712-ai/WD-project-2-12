@@ -544,9 +544,45 @@ def get_timetable():
 
             new_schedule[day_key] = new_slots
 
+        # --- Rename headers to user-friendly format
+        header_map = {}
+        clean_time_slots = []
+        
+        for ts in time_slots:
+            nts = _norm(ts)
+            new_name = ts # default
+            
+            if '9am' in nts:
+                new_name = "9am to 10:15am"
+            elif '10.30' in nts:
+                new_name = "10:30am to 11:45am"
+            elif '12.00' in nts:
+                new_name = "12:00pm to 1:15pm"
+            elif '2.30' in nts:
+                new_name = "2:30pm to 3:45pm"
+            elif '4.00' in nts:
+                new_name = "4pm to 5:15pm"
+            elif '5.30' in nts:
+                new_name = "5:30pm to 6:45pm"
+            elif '7:00' in nts or '7.00' in nts:
+                new_name = "7:00pm to 8:15pm"
+            
+            header_map[ts] = new_name
+            clean_time_slots.append(new_name)
+            
+        # Update schedule keys
+        final_schedule = {}
+        for day, slots in new_schedule.items():
+            final_schedule[day] = {}
+            for old_ts, entries in slots.items():
+                if old_ts in header_map:
+                    final_schedule[day][header_map[old_ts]] = entries
+                else:
+                    final_schedule[day][old_ts] = entries
+
         return {
-            'time_slots': time_slots,
-            'schedule': new_schedule
+            'time_slots': clean_time_slots,
+            'schedule': final_schedule
         }
     except Exception as e:
         print(f"Error reading timetable: {e}")
