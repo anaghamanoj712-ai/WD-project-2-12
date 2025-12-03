@@ -121,9 +121,9 @@
     {% if courses %}
     <div class="courses-grid">
         {% for course in courses %}
-        <a href="{{ url_for('course_materials', course_code=course.code) }}" class="course-card">
-            <div class="course-code">{{ course.code }}</div>
-            <div class="course-name">{{ course.name }}</div>
+        <a href="{{ url_for('course_materials', course_code=course['code']) }}" class="course-card">
+            <div class="course-code">{{ course['code'] }}</div>
+            <div class="course-name">{{ course['name'] }}</div>
             <div class="course-desc">View materials, notes, and resources for this course</div>
         </a>
         {% endfor %}
