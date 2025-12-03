@@ -34,7 +34,7 @@ form {
 
 label {
     display: block;
-    color: #8b9d83;
+    color: #ccc;
     font-weight: 500;
     margin-bottom: 8px;
     margin-top: 12px;
@@ -43,10 +43,10 @@ label {
 select, input, textarea {
   margin-bottom: 15px;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 2px solid #5affcd;
+  background: #121212;
+  border: 1px solid #4a5a4a;
   border-radius: 8px;
-  color: #40b4cc;
+  color: #e0e0e0;
   font-size: 14px;
   font-family: inherit;
   transition: all 0.3s ease;
@@ -55,39 +55,40 @@ select, input, textarea {
 }
 
 select::placeholder, input::placeholder, textarea::placeholder {
-  color: #6bffdd;
+  color: #8b9d83;
+  opacity: 0.5;
 }
 
 select {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%2330d9a8' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%238b9d83' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 40px;
 }
 
 select:hover, input:hover, textarea:hover {
-  border-color: #6bffdd;
-  background: linear-gradient(135deg, #1e2340 0%, #1a2445 100%);
+  border-color: #8b9d83;
+  background: #1a1a1a;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(90, 255, 205, 0.15);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 select:focus, input:focus, textarea:focus {
   outline: none;
-  border-color: #5affcd;
-  background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
-  box-shadow: 0 0 15px rgba(90, 255, 205, 0.3), inset 0 0 10px rgba(90, 255, 205, 0.1);
-  color: #40b4cc;
+  border-color: #8b9d83;
+  background: #1a1a1a;
+  box-shadow: 0 0 10px rgba(139, 157, 131, 0.2);
+  color: #fff;
   transform: translateY(0);
 }
 
 .btn {
     width: 100%;
     padding: 14px;
-    background: linear-gradient(135deg, #8b9d83 0%, #7a8c73 100%);
-    color: #001;
+    background: linear-gradient(135deg, #667eea 0%, #5a6fd8 100%);
+    color: #fff;
     border: none;
     border-radius: 8px;
     font-size: 16px;

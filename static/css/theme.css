@@ -22,6 +22,8 @@
 .header-section,
 .announce-form,
 .materials-grid,
+.course-header,
+.sort-controls,
 .card {
     background: var(--card-grad) !important;
     border: 1px solid var(--card-border) !important;
