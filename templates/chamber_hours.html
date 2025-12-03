@@ -6,8 +6,8 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #fff;
-    color: #000;
+    background: #1a1a1a;
+    color: #fff;
     padding: 10px 20px;
     border-radius: 8px;
     text-decoration: none;
@@ -15,98 +15,160 @@
     font-size: 14px;
     transition: all 0.3s ease;
     margin-bottom: 20px;
+    border: 1px solid #333;
 }
 
 .back-btn:hover {
-    background: #f0f0f0;
+    background: #252525;
     transform: translateX(-4px);
-    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .chamber-management-header {
-    background: linear-gradient(90deg,#1b2232 40%,#181822 100%);
-    border-radius:16px; margin-bottom:26px; padding:28px 26px 15px 30px;
-    box-shadow: 0 2px 20px #24266133;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
+
 .chamber-hours-form {
     display: flex; flex-wrap: wrap; gap:18px; align-items: center; margin-bottom: 24px;
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #2a2a2a;
 }
+
 .chamber-hours-form input, .chamber-hours-form select {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    border: 2px solid #5affcd;
-    color: #40b4cc;
-    border-radius:6px; padding: 9px 15px; font-size: 1rem; min-width:150px;
+    background: #121212;
+    border: 1px solid #4a5a4a;
+    color: #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 1rem;
+    min-width: 150px;
     font-family: inherit;
     transition: all 0.3s ease;
 }
 
 .chamber-hours-form input::placeholder {
-    color: #6bffdd;
+    color: #8b9d83;
+    opacity: 0.5;
 }
 
 .chamber-hours-form input:focus,
 .chamber-hours-form select:focus {
     outline: none;
-    border-color: #5affcd;
-    background: linear-gradient(135deg, #0f3d6f 0%, #1a1a2e 100%);
-    box-shadow: 0 0 15px rgba(90, 255, 205, 0.3), inset 0 0 10px rgba(90, 255, 205, 0.1);
+    border-color: #8b9d83;
+    background: #1a1a1a;
+    box-shadow: 0 0 10px rgba(139, 157, 131, 0.2);
 }
 
 .chamber-hours-form select {
     cursor: pointer;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%2330d9a8' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%238b9d83' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 40px;
 }
 
 .chamber-hours-form button {
-    background: linear-gradient(135deg,#8b9d83 0%,#7a8c73 100%);
-    color:#173d2c; font-weight:700; font-size:1.07rem; border-radius:7px;
-    border:none; padding:10px 25px; cursor:pointer; box-shadow:0 2px 8px rgba(74,184,176,0.3);
-    transition: all 0.18s;
+    background: linear-gradient(135deg, #667eea 0%, #5a6fd8 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.07rem;
+    border-radius: 8px;
+    border: none;
+    padding: 12px 25px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
 }
+
 .chamber-hours-form button:hover {
-    background: linear-gradient(135deg,#40e0b8 0%,#5fc8c0 100%);
-    color:#0c2320; box-shadow:0 4px 18px rgba(74,184,176,0.5);
+    background: linear-gradient(135deg, #768bfb 0%, #6b80f0 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
 }
+
 .chamber-flex-table {
-    width:100%; border-collapse: collapse; background: #181c2b; border-radius: 13px; box-shadow: 0 2px 12px #173d4b1c; overflow: hidden;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #1a1a1a;
+    border-radius: 16px;
+    border: 1px solid #2a2a2a;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
+
 .chamber-flex-table th, .chamber-flex-table td {
-    padding: 14px 15px; font-size:1rem;
-    color: #fff; border: 1px solid #26293a; text-align:center;
+    padding: 16px;
+    font-size: 1rem;
+    color: #e0e0e0;
+    border-bottom: 1px solid #2a2a2a;
+    text-align: left;
 }
+
 .chamber-flex-table th {
-    background: linear-gradient(92deg,#232652 30%,#353564 100%);
-    font-weight: 900; font-size: 1.1rem;
+    background: #252525;
+    font-weight: 600;
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
 }
-.chamber-flex-table tr:nth-child(even) { background:#191c24;}
+
+.chamber-flex-table tr:last-child td {
+    border-bottom: none;
+}
+
+.chamber-flex-table tr:hover td {
+    background: #252525;
+}
+
 .chamber-flex-table td .delete-btn {
-    color:#ff4c70; font-weight:700; padding:3px 9px; border-radius:5px; background: #24253a; text-decoration:none; transition: background 0.13s;
+    color: #ff4c4c;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(255, 76, 76, 0.1);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 76, 76, 0.2);
 }
+
 .chamber-flex-table td .delete-btn:hover {
-    background:#61182f; color:#fff;
+    background: rgba(255, 76, 76, 0.2);
+    transform: translateY(-1px);
 }
 
 /* Calendar icon color for date inputs */
 input[type="date"]::-webkit-calendar-picker-indicator {
     filter: invert(1);
     cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    transform: scale(1.15);
+    filter: invert(1) brightness(1.3);
 }
 </style>
 {% endblock %}
 {% block content %}
 <div class="chamber-management-header">
-    <h1 style="font-weight:900; color:#5fb8c9;font-size:2rem; margin-bottom:7px;">🕑 Chamber Hours</h1>
-    <p style="color:#aab;">Set or update your available slots for students to book meetings.</p>
+    <h1 style="font-weight:700; color:#fff; font-size:2rem; margin-bottom:7px;">🕑 Chamber Hours</h1>
+    <p style="color:#999;">Set or update your available slots for students to book meetings.</p>
 </div>
 <form method="POST" action="{{ url_for('chamber_hours') }}" class="chamber-hours-form" id="chamberForm">
     <input type="date" id="chamberDate" name="date" required placeholder="Date">
     <div style="display:flex; gap:8px; align-items:center;">
         <input type="number" name="start_hour" min="1" max="12" required placeholder="Hour" style="width:80px;">
-        <span style="color:#40b4cc;">:</span>
+        <span style="color:#e0e0e0; font-weight: bold;">:</span>
         <input type="number" name="start_minute" min="0" max="59" required placeholder="Min" style="width:80px;">
         <select name="start_period" required style="width:80px;">
             <option value="AM">AM</option>
@@ -115,7 +177,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     </div>
     <div style="display:flex; gap:8px; align-items:center;">
         <input type="number" name="end_hour" min="1" max="12" required placeholder="Hour" style="width:80px;">
-        <span style="color:#40b4cc;">:</span>
+        <span style="color:#e0e0e0; font-weight: bold;">:</span>
         <input type="number" name="end_minute" min="0" max="59" required placeholder="Min" style="width:80px;">
         <select name="end_period" required style="width:80px;">
             <option value="AM">AM</option>

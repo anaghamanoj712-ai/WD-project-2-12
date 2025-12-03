@@ -37,14 +37,139 @@
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" required value="{{ email or '' }}">
             </div>
+            
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+                <div class="password-wrapper" style="position: relative;">
+                    <input type="password" id="password" name="password" required onkeyup="checkPassword()">
+                    <button type="button" class="toggle-password" onclick="togglePassword('password')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888;">👁️</button>
+                </div>
+                <div class="strength-meter" style="margin-top: 8px; height: 4px; background: #333; border-radius: 2px; overflow: hidden;">
+                    <div id="strength-bar" style="height: 100%; width: 0%; transition: all 0.3s;"></div>
+                </div>
+                <div id="strength-text" style="font-size: 12px; margin-top: 4px; color: #888;"></div>
+                <ul class="password-requirements" style="list-style: none; padding: 0; margin-top: 8px; font-size: 12px; color: #888;">
+                    <li id="req-length">❌ At least 8 characters</li>
+                    <li id="req-upper">❌ One uppercase letter</li>
+                    <li id="req-lower">❌ One lowercase letter</li>
+                    <li id="req-number">❌ One number</li>
+                    <li id="req-symbol">❌ One symbol</li>
+                </ul>
             </div>
+
             <div class="form-group">
                 <label for="confirm_password">Confirm Password</label>
-                <input type="password" id="confirm_password" name="confirm_password" required>
+                <div class="password-wrapper" style="position: relative;">
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('confirm_password')" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #888;">👁️</button>
+                </div>
             </div>
+
+            <script>
+                function togglePassword(id) {
+                    const input = document.getElementById(id);
+                    if (input.type === "password") {
+                        input.type = "text";
+                    } else {
+                        input.type = "password";
+                    }
+                }
+
+                function checkPassword() {
+                    const password = document.getElementById('password').value;
+                    const commonPasswords = ['password123', '12345678', 'password', '123456', 'qwerty', 'admin123'];
+                    
+                    // Requirements
+                    const hasLength = password.length >= 8;
+                    const hasUpper = /[A-Z]/.test(password);
+                    const hasLower = /[a-z]/.test(password);
+                    const hasNumber = /[0-9]/.test(password);
+                    const hasSymbol = /[^A-Za-z0-9]/.test(password);
+                    
+                    // Update UI
+                    updateReq('req-length', hasLength);
+                    updateReq('req-upper', hasUpper);
+                    updateReq('req-lower', hasLower);
+                    updateReq('req-number', hasNumber);
+                    updateReq('req-symbol', hasSymbol);
+
+                    // Strength Calculation
+                    let strength = 0;
+                    if (hasLength) strength++;
+                    if (hasUpper) strength++;
+                    if (hasLower) strength++;
+                    if (hasNumber) strength++;
+                    if (hasSymbol) strength++;
+
+                    const bar = document.getElementById('strength-bar');
+                    const text = document.getElementById('strength-text');
+                    
+                    if (commonPasswords.includes(password.toLowerCase())) {
+                        bar.style.width = '100%';
+                        bar.style.backgroundColor = '#ff4444';
+                        text.textContent = 'Weak: Common password detected';
+                        text.style.color = '#ff4444';
+                        return false;
+                    }
+
+                    if (strength <= 2) {
+                        bar.style.width = '33%';
+                        bar.style.backgroundColor = '#ff4444';
+                        text.textContent = 'Weak';
+                        text.style.color = '#ff4444';
+                    } else if (strength <= 4) {
+                        bar.style.width = '66%';
+                        bar.style.backgroundColor = '#ffbb33';
+                        text.textContent = 'Medium';
+                        text.style.color = '#ffbb33';
+                    } else {
+                        bar.style.width = '100%';
+                        bar.style.backgroundColor = '#00C851';
+                        text.textContent = 'Strong';
+                        text.style.color = '#00C851';
+                    }
+                }
+
+                function updateReq(id, valid) {
+                    const el = document.getElementById(id);
+                    if (valid) {
+                        el.style.color = '#00C851';
+                        el.innerHTML = '✅ ' + el.innerText.substring(2);
+                    } else {
+                        el.style.color = '#ff4444';
+                        el.innerHTML = '❌ ' + el.innerText.substring(2);
+                    }
+                }
+
+                document.querySelector('form').addEventListener('submit', function(e) {
+                    const password = document.getElementById('password').value;
+                    const confirm = document.getElementById('confirm_password').value;
+                    const commonPasswords = ['password123', '12345678', 'password', '123456', 'qwerty', 'admin123'];
+
+                    if (password !== confirm) {
+                        e.preventDefault();
+                        alert('Passwords do not match!');
+                        return;
+                    }
+
+                    if (commonPasswords.includes(password.toLowerCase())) {
+                        e.preventDefault();
+                        alert('Please choose a stronger password. Common passwords are not allowed.');
+                        return;
+                    }
+
+                    const hasLength = password.length >= 8;
+                    const hasUpper = /[A-Z]/.test(password);
+                    const hasLower = /[a-z]/.test(password);
+                    const hasNumber = /[0-9]/.test(password);
+                    const hasSymbol = /[^A-Za-z0-9]/.test(password);
+
+                    if (!hasLength || !hasUpper || !hasLower || !hasNumber || !hasSymbol) {
+                        e.preventDefault();
+                        alert('Password does not meet all requirements.');
+                    }
+                });
+            </script>
             <div class="captcha-container">
                 <div class="g-recaptcha" data-sitekey="{{ site_key }}" data-theme="dark"></div>
             </div>
